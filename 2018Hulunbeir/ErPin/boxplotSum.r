@@ -1,0 +1,12 @@
+library(stats)
+x<-read.csv("ErPin.csv",header=TRUE)
+xt<-xtabs(~DataYear + Year2,data=x[!is.na(x$Erosion),])
+xt <- t(xt)
+dim(xt)<-c(16,1)
+xt <- paste("n=", xt, sep="")
+
+boxplot(Erosion~ Year2*DataYear,data=x,ylab = "ErosionPin (mm)",xlab= "Year/Treatment")
+abline(v=4.5)
+abline(v=8.5)
+abline(v=12.5)
+mtext(xt, side = 1, line = 2, at = 1:16)
