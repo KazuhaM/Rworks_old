@@ -1,5 +1,215 @@
-setwd("E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0501第4回ゼミ発表/解析")
+path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
+path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 
+setwd(path)
+
+
+d.flist <- list.files(path, pattern="csv")
+d.flist300 <- d.flist[grep("300",d.flist)]
+
+pc.col = 4
+wm.col = 6
+
+n <- 3 + pc.col + wm.col*1.5 
+result.df <- data.frame(matrix(rep(NA, n), nrow=1))[numeric(0), ]
+colnames(result.df) <- c("Time", "SiteID", "Event", "PC_10_1", "PC_10_2", "PC_10_3", "PC_50_1",
+                         "WS_h", "WS_m", "WS_l", "WD_h", "WD_m", "WD_l",
+                         "Height_WM_h", "Height_WM_m", "Height_WM_l")
+
+######全サイトデータ結合
+for(i in 1 : length(d.flist300)){
+  d <- read.csv(d.flist300[i],header=T)
+  dname <- strsplit(d.flist300[i], "_")
+  dname <- sub(".csv", "", dname[[1]][2])
+  d.pc <- d[,c(1, grep("PC",colnames(d)))]
+  d.pc <- d.pc[, colnames(d.pc) != "PC18_50"]
+  d.ws <- d[,c(1, grep("WS",colnames(d)))]
+  d.wd <- d[,c(1, grep("WD",colnames(d)))]
+  
+  height.wm <- as.numeric(sub("WS_","",colnames(d.ws)[2:length(colnames(d.ws))]))
+  height.wm.mat <- matrix(0,nrow(d),length(height.wm))
+  for(j in 1 : nrow(d)){
+    height.wm.mat[j,] <- height.wm
+  }
+  
+  
+  if(ncol(d.pc) == 4){
+    temp.df <- cbind(d[,1], rep(dname,nrow(d)),rep(1,nrow(d)),rep(99999,nrow(d)),
+                     d.pc[2:ncol(d.pc)],d.ws[2:ncol(d.ws)],d.wd[2:ncol(d.wd)],height.wm.mat)
+  }else if(ncol(d.pc) == 5){
+    temp.df <- cbind(d[,1], rep(dname,nrow(d)),rep(1,nrow(d)),
+                     d.pc[2:ncol(d.pc)],d.ws[2:ncol(d.ws)],d.wd[2:ncol(d.wd)],height.wm.mat)
+  }
+  colnames(temp.df) <- colnames(result.df)
+  result.df = rbind(result.df,temp.df)
+
+  par(mfrow=c(3,1))
+  #drifting sands
+  ts.plot(d.pc[2],gpars=list(xlab="Time", ylab="Drifting Sands(n/s)", main = dname),
+          ylim = c(0,max(d.pc[,2:ncol(d.pc)])),col=1) 
+  for(j in 3:ncol(d.pc)){
+    par(new = T)
+    ts.plot(d.pc[j],gpars=list(xlab="", ylab=""),
+            ylim = c(0,max(d.pc[,2:ncol(d.pc)])),col=j-1)
+  }
+  legend(max(as.ts(d[,1]))*0.9,max(d.pc[,2:ncol(d.pc)]),colnames(d.pc)[2:ncol(d.pc)],lty=1, 
+         col =1:(ncol(d.pc)-1))
+  
+  #wind speed
+  ts.plot(d.ws[2],gpars=list(xlab="Time", ylab="Wind Speed(m/s)"),
+          ylim = c(0,max(d.ws[,2:ncol(d.ws)])),col=1)
+  
+  for(j in 3:ncol(d.ws)){
+    par(new = T)
+    ts.plot(d.ws[j],gpars=list(xlab="", ylab=""),
+            ylim = c(0,max(d.ws[,2:ncol(d.ws)])),col=j -1)
+  }
+  legend(max(as.ts(d[,1]))*0.9,max(d.ws[,2:ncol(d.ws)]),colnames(d.ws)[2:ncol(d.ws)],lty=1,
+         col =1:(ncol(d.ws)-1))
+  
+  #wind dir.
+  ts.plot(d.wd[2],gpars=list(xlab="Time", ylab="Wind Direction(degree)"),
+          ylim = c(0,max(d.wd[,2:ncol(d.wd)])),col=1)
+  
+  for(j in 3:ncol(d.wd)){
+    par(new = T)
+    ts.plot(d.wd[j],gpars=list(xlab="", ylab=""),
+            ylim = c(0,max(d.wd[,2:ncol(d.wd)])),col=j -1)
+  }
+  legend(max(as.ts(d[,1]))*0.9,max(d.wd[,2:ncol(d.wd)]),colnames(d.wd)[2:ncol(d.wd)],lty=1,
+         col =1:(ncol(d.wd)-1))
+  abline(h = 120)
+  abline(h = 240)
+  
+  dev.copy(pdf, file=paste(dname,".pdf",sep=""), width = 10, height = 10)
+  dev.off()
+}
+
+write.csv(result.df, paste(sub("/avebyn","",path),"/sumdata.csv", sep = ""),row.names=FALSE)
+
+setwd(path2)
+ev.d <- read.csv("Ev_sumdata.csv",header=T)
+ev.d["Z0"] <- NaN
+ev.d["us"] <- NaN
+ev.d["avePC"]<-NaN
+for(i in 1:nrow(ev.d)){
+  if(ev.d$PC_10_1[i] == 99999){
+    ev.d$avePC[i] <- (ev.d$PC_10_2[i] + ev.d$PC_10_3[i]) /2
+  } else{
+    ev.d$avePC[i] <- (ev.d$PC_10_1[i] + ev.d$PC_10_2[i] + ev.d$PC_10_3[i]) /3
+  }
+}
+
+for(i in 1:nrow(ev.d)){
+  iws <- c(ev.d[i,8],ev.d[i,9],ev.d[i,10])
+  ih <- c(ev.d[i,14],ev.d[i,15],ev.d[i,16])
+  ih <- log(ih)
+  tmp.result <- lm(ih ~ iws)
+  ev.d$Z0[i] <- exp(as.numeric(tmp.result$coefficients[1]))
+  ev.d$us[i] <- 0.4/as.numeric(tmp.result$coefficients[2])
+}
+
+sitelev <- levels(ev.d$SiteID)
+ev.d$Event <- as.factor(ev.d$Event)
+eventlev <- levels(ev.d$Event)
+###結果出力用配列作成
+ut <- cbind(c(0,0,0,0),c(0,0,0,0))
+rownames(ut) <- c("SiteID","Event","Ut","D",)
+colnames(ut) <- c("du","du")
+for(i in 1:length(sitelev)){
+  for(j in 1:length(eventlev)){
+    tmp.d2 <- ev.d[ev.d$SiteID == sitelev[i] & ev.d$Event == eventlev[i],]
+    if(nrow(tmp.d2) == 0){
+      next#そのイベントが存在しない場合スキップ
+    }
+    #移動開始限界風速が定義できるか判定
+    if(length(tmp.d2[tmp.d2$avePC>= 1])==0){
+      v.Ut <- NA
+      v.D <- NA
+    }else{
+      #移動開始限界風速が定義できる場合
+      v.minW<-min(tmp.d2[tmp.d2$avePC>= 1])
+      tmp.d2t <- tmp.d2[tmp.d2$avePC>= 1]
+
+      ##臨界風速を変化させて適切な値を見つける
+      #変化させる仮の臨界風速の値のベクトル作成
+      #step.u <- seq(max(min(d2$WindSpeed)-1,0),max(d2$WindSpeed)*0.8, by = 0.01)
+      step.u <- seq(max(min(d2$WindSpeed)-1,0),
+                    length = round((max(d2$WindSpeed) - max(min(d2$WindSpeed)-1,0))*0.75/0.01), 
+                    by = 0.01)
+      #各仮の臨界風速以上の風速の場合のデータのみで臨界風速算出
+      R2 <- c()
+      R2.sum <- cbind(c(0,0,0,0,0),c(0,0,0,0,0))
+      for (k in step.u) {
+        #各仮の臨界風速以上の風速の場合のデータ抽出
+        d3 <- d2[d2$WindSpeed >= k, ]
+        d3 <- d3[!is.na(d3[,1]),]
+        
+        x <- d3$WindSpeed
+        y <- d3$DriftSand
+        
+        a3 <- sum(x^3 * y - k^2 * x * y)/sum(k^4 * x^2 - 2 * k^2 * x^4 + x^6)
+        
+        Pred <- a3 * d3$WindSpeed * (d3$WindSpeed^2 - k^2)
+        if((length(d3$WindSpeed)-1-1) <= 0){
+          next
+        }
+        R2 <- 1- (sum((d3$DriftSand - Pred)^2)/(length(d3$WindSpeed)-1-1))/
+          (sum((d3$DriftSand - mean(d3$DriftSand))^2)/(length(d3$WindSpeed)-1))
+        R2.sum <- cbind(R2.sum,c(k,R2,length(d3$WindSpeed),k,a3))
+        
+      }
+      R2.sum <-R2.sum[,3:ncol(R2.sum)]
+      R2.sum <- t(R2.sum)
+      
+      plot(R2.sum[,2],main=paste("R2.Event",lev[[4]][j],"_P.C.",
+                                 lev[[3]][l],sep=""))
+      dev.copy(pdf, file=paste("Step_R2.Event",lev[[4]][j],"_P.C.",
+                               lev[[3]][l],".pdf",sep=""), width = 10, height = 10)
+      dev.off()
+      R2.sum.max <- R2.sum[which.max(R2.sum[,2]),]#決定係数が最小となるときの各種値
+      v.SUt <- R2.sum.max[1]
+      v.r2 <- R2.sum.max[2]
+      v.ns <- R2.sum.max[3]
+      v.n <- length(d2$WindSpeed)
+      v.Ut <- R2.sum.max[4]
+      v.D <- R2.sum.max[5]
+      
+      plot(d2$WindSpeed, d2$DriftSand, main=paste("Event",lev[[4]][j],"_P.C.",
+                                                  lev[[3]][l],sep=""), xlab ="WindSpeed",
+           ylab ="DriftSand",xlim=c(0,max(d2$WindSpeed)*1.1),
+           ylim = c(0,max(d2$DriftSand)*1.1))
+      
+      abline(v = v.Ut, col = 1)
+      mtext(paste("Ut:",round(v.Ut,1),sep=""), side = 1, line = 2, at = v.Ut)
+      abline(v = v.minW, col =2)
+      mtext(paste("Utf:",round(v.minW,1),sep=""), side = 1, line = 2, at = v.minW)
+      par(new=T)
+      Appro <- function(x) v.D * x^3 - v.D * v.Ut^2 * x  # 標準正規分布の密度
+      plot(Appro,v.Ut,max(d2$WindSpeed),
+           xlim=c(0,max(d2$WindSpeed)*1.1),ylim = c(0,max(d2$DriftSand)*1.1),
+           xlab ="WindSpeed", ylab ="DriftSand")
+      dev.copy(pdf, file=paste("Step_SN_WS_Event",lev[[4]][j],"_P.C.",
+                               lev[[3]][l],".pdf",sep=""), width = 10, height = 10)
+      dev.off()
+    }
+    #結果配列作成
+    ut <- cbind(ut,c(v.minW,v.SUt,v.r2,v.ns,v.n,v.Ut,v.D
+                     ,as.numeric(as.character(d4.t$P.C.No.[1])),d4.t$Event[1]
+                     ,as.numeric(as.character(d4.t$Date[1]))
+                     ,d4.t$SiteCover[1],d4.t$Richness[1]
+                     ,d4.t$Ave.Height[1],d4.t$DominantAve.Height[1]
+                     ,d4.t$Sum.Veg.Vol.[1],d4.t$Sum.DominantVeg.Vol.[1]
+                     ,as.numeric(d4.t$E.Veg.Type2[1]),d4.t$DCA3[1] ))
+    dimnames(ut) <- list(c("Utf","Step.Ut","R2","sump num","all num","Ut","D","P.C.No.",
+                           "Event","Date","Cov",
+                           "Richness", "Ave.Height","DominantAve.Height",
+                           "Sum.Veg.Vol.", "Sum.DominantVeg.Vol.","E.Veg.Type2"
+                           ,"DCA3"),
+                         c(colnames(ut)[1:ncol(ut)-1],
+                           paste("Event",lev[[4]][j],"_P.C.",lev[[3]][l],sep="")))
+  }
+}
 
 ####飛砂数風速風向
 
