@@ -1,22 +1,28 @@
-path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
-path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
+# path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
+# path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
+path <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
 
+path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 setwd(path)
 
+averate <- c("60","180","300","600","1800")
 
 d.flist <- list.files(path, pattern="csv")
-d.flist300 <- d.flist[grep("300",d.flist)]
+d.flist300 <- d.flist[grep(averate,d.flist)]
 
 pc.col = 4
 wm.col = 6
 
 n <- 3 + pc.col + wm.col*1.5 
-result.df <- data.frame(matrix(rep(NA, n), nrow=1))[numeric(0), ]
-colnames(result.df) <- c("Time", "SiteID", "Event", "PC_10_1", "PC_10_2", "PC_10_3", "PC_50_1",
-                         "WS_h", "WS_m", "WS_l", "WD_h", "WD_m", "WD_l",
-                         "Height_WM_h", "Height_WM_m", "Height_WM_l")
 
-######全サイトデータ結合
+
+######全サイトデータ結合########################################
+for(k in 1 : length(averate)){
+  d.flist300 <- d.flist[grep(averate[k],d.flist)]
+  result.df <- data.frame(matrix(rep(NA, n), nrow=1))[numeric(0), ]
+  colnames(result.df) <- c("Time", "SiteID", "Event", "PC_10_1", "PC_10_2", "PC_10_3", "PC_50_1",
+                           "WS_h", "WS_m", "WS_l", "WD_h", "WD_m", "WD_l",
+                           "Height_WM_h", "Height_WM_m", "Height_WM_l")
 for(i in 1 : length(d.flist300)){
   d <- read.csv(d.flist300[i],header=T)
   dname <- strsplit(d.flist300[i], "_")
@@ -45,7 +51,7 @@ for(i in 1 : length(d.flist300)){
 
   par(mfrow=c(3,1))
   #drifting sands
-  ts.plot(d.pc[2],gpars=list(xlab="Time", ylab="Drifting Sands(n/s)", main = dname),
+  ts.plot(d.pc[2],gpars=list(xlab="Time", ylab="Drifting Sands(n/s)", main = paste(averate[k],"_", dname,sep="")),
           ylim = c(0,max(d.pc[,2:ncol(d.pc)])),col=1) 
   for(j in 3:ncol(d.pc)){
     par(new = T)
@@ -81,41 +87,68 @@ for(i in 1 : length(d.flist300)){
   abline(h = 120)
   abline(h = 240)
   
-  dev.copy(pdf, file=paste(dname,".pdf",sep=""), width = 10, height = 10)
+  dev.copy(pdf, file=paste(averate[k],"_", dname,".pdf",sep=""), width = 10, height = 10)
   dev.off()
 }
 
-write.csv(result.df, paste(sub("/avebyn","",path),"/sumdata.csv", sep = ""),row.names=FALSE)
+write.csv(result.df, paste(sub("/avebyn","",path),"/", averate[k],"_sumdata.csv", sep = ""),row.names=FALSE)
 
+}
+
+############################臨界風速等算出###################
 setwd(path2)
-ev.d <- read.csv("Ev_sumdata.csv",header=T)
+i <- 1
+ev_filename = paste("Ev_",averate[i],"sumdata.csv",sep="")
+ev.d <- read.csv(ev_filename,header=T)
+ev.d["SF_gs"] <- NaN
+ev.d["SF_sl"] <- NaN
 ev.d["Z0"] <- NaN
-ev.d["us"] <- NaN
-ev.d["avePC"]<-NaN
-for(i in 1:nrow(ev.d)){
-  if(ev.d$PC_10_1[i] == 99999){
-    ev.d$avePC[i] <- (ev.d$PC_10_2[i] + ev.d$PC_10_3[i]) /2
+ev.d["Us"] <- NaN
+ev.d["Ust"]<-NaN
+ev.d["c"]<-NaN
+
+#粒径データ
+d50 <- read.csv("SiteParticle.csv",header=T)
+iSiteD50 <- d50[d50[,1]==ev.d$SiteID,]
+
+#サルテーションフラックス算出
+for(j in 1:nrow(ev.d)){
+  if(ev.d$PC_10_1[j] == 99999){
+    #Udo et al. 2008 の式
+    #中央粒径：ground surface (Ishizuka et al. 2012)
+    #中央粒径：saltation particle(abutaiti et al. 2013)
+    ev.d$SF_gs[j] <- (2*2.5*(iSiteD50[,2]^3)*(ev.d$PC_10_2[j] + ev.d$PC_10_3[j]))/
+      (3000*0.012^2*2*as.numeric(averate[i]))
+    ev.d$SF_sl[j] <- (2*2.5*(iSiteD50[,3]^3)*(ev.d$PC_10_2[j] + ev.d$PC_10_3[j]))/
+      (3000*0.012^2*2*as.numeric(averate[i]))
   } else{
-    ev.d$avePC[i] <- (ev.d$PC_10_1[i] + ev.d$PC_10_2[i] + ev.d$PC_10_3[i]) /3
+    ev.d$SF_gs[j] <- (2*2.5*(iSiteD50[,2]^3)*(ev.d$PC_10_1[j] + ev.d$PC_10_2[j] + ev.d$PC_10_3[j]))/
+      (3000*0.012^2*3*as.numeric(averate[i]))
+    ev.d$SF_sl[j] <- (2*2.5*(iSiteD50[,3]^3)*(ev.d$PC_10_1[j] + ev.d$PC_10_2[j] + ev.d$PC_10_3[j]))/
+      (3000*0.012^2*3*as.numeric(averate[i]))
   }
+  #粗度、摩擦速度算出
+  if(ev.d$WS_h[j] >= ev.d$WS_m[j] && ev.d$WS_m[j] >= ev.d$WS_l[j] && ev.d$WS_h[j] >= 8 &&  ev.d$Event != 99){
+    iws <- c(ev.d$WS_h[j],ev.d$WS_m[j],ev.d$WS_l[j])
+    ih <- c(ev.d$Height_WM_h[j],ev.d$Height_WM_m[j],ev.d$Height_WM_l[j])
+    ih <- log(ih)
+    
+    tmp.result <- lm(ih ~ iws)
+    ev.d$Z0[j] <- exp(as.numeric(tmp.result$coefficients[1]))
+    ev.d$Us[j] <- 0.4/as.numeric(tmp.result$coefficients[2])
+  }
+  
 }
 
-for(i in 1:nrow(ev.d)){
-  iws <- c(ev.d[i,8],ev.d[i,9],ev.d[i,10])
-  ih <- c(ev.d[i,14],ev.d[i,15],ev.d[i,16])
-  ih <- log(ih)
-  tmp.result <- lm(ih ~ iws)
-  ev.d$Z0[i] <- exp(as.numeric(tmp.result$coefficients[1]))
-  ev.d$us[i] <- 0.4/as.numeric(tmp.result$coefficients[2])
-}
 
 sitelev <- levels(ev.d$SiteID)
 ev.d$Event <- as.factor(ev.d$Event)
-eventlev <- levels(ev.d$Event)
+# eventlev <- levels(ev.d$Event)
 ###結果出力用配列作成
-ut <- cbind(c(0,0,0,0),c(0,0,0,0))
-rownames(ut) <- c("SiteID","Event","Ut","D",)
-colnames(ut) <- c("du","du")
+result.df <- data.frame(matrix(rep(NA, n), nrow=1))[numeric(0), ]
+colnames(result.df) <- c("SiteID", "Event", "Ust", "c", "AveZ0", "Coverage",
+                         "AveHeight", "WS_m", "WS_l", "WD_h", "WD_m", "WD_l",
+                         "Height_WM_h", "Height_WM_m", "Height_WM_l")
 for(i in 1:length(sitelev)){
   for(j in 1:length(eventlev)){
     tmp.d2 <- ev.d[ev.d$SiteID == sitelev[i] & ev.d$Event == eventlev[i],]
