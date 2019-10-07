@@ -18,7 +18,7 @@ n <- 3 + pc.col + wm.col*1.5
 
 ######全サイトデータ結合########################################
 for(k in 1 : length(averate)){
-  d.flist300 <- d.flist[grep(averate[k],d.flist)]
+  d.flist300 <- d.flist[grep(paste(averate[k],"_",sep=""),d.flist)]
   result.df <- data.frame(matrix(rep(NA, n), nrow=1))[numeric(0), ]
   colnames(result.df) <- c("Time", "SiteID", "Event", "PC_10_1", "PC_10_2", "PC_10_3", "PC_50_1",
                            "WS_h", "WS_m", "WS_l", "WD_h", "WD_m", "WD_l",

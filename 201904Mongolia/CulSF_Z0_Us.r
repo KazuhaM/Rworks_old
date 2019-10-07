@@ -13,7 +13,8 @@ averate <- c("60","180","300","600","1800")
 d50 <- read.csv("SiteParticle.csv",header=T)
 
 pbi <- txtProgressBar(min = 1, max = length(averate), style = 3)
-for(i in 1:length(averate)){
+# for(i in 1:length(averate)){
+for(i in 1:1){
   ev_filename = paste("Ev_",averate[i],"_sumdata.csv",sep="")
   ev.d <- read.csv(ev_filename,header=T)
   ev.d["SF_gs"] <- NaN
@@ -75,15 +76,55 @@ for(i in 1:length(averate)){
     if(ev.d$WS_h[j] > ev.d$WS_m[j] && ev.d$WS_m[j] > ev.d$WS_l[j] && ev.d$WS_h[j] >= 8 &&  ev.d$Event != 99){
     # if(!(ev.d$WS_h[j] <= ev.d$WS_m[j] && ev.d$WS_m[j] <= ev.d$WS_l[j]) && ev.d$WS_h[j] >= 8 &&  ev.d$Event != 99){
       iws <- c(ev.d$WS_h[j],ev.d$WS_m[j],ev.d$WS_l[j])
-      ih <- c(ev.d$Height_WM_h[j],ev.d$Height_WM_m[j],ev.d$Height_WM_l[j])
+      ih <- c(ev.d$Height_WM_h[j],ev.d$Height_WM_m[j],ev.d$Height_WM_l[j])/100
+      
+      # if(j == 1){
+      #   plot(iws, ih, log = "y",xlim = c(0,max(ev.d$WS_h)),ylim =c(0.01,10))
+      # }else{
+      #   par(new = T)
+      #   plot(iws, ih, log = "y",xlim = c(0,max(ev.d$WS_h)),ylim =c(0.01,10))
+      #   
+      # }
       ih <- log(ih)
       
       tmp.result <- lm(ih ~ iws)
       ev.d$Z0[j] <- exp(as.numeric(tmp.result$coefficients[1]))
       ev.d$Us[j] <- 0.4/as.numeric(tmp.result$coefficients[2])
+      # abline(tmp.result)
+      
     }
     setTxtProgressBar(pbj, j) 
   }
+  SiteIndex <- levels(ev.d$SiteID)
+  for(k in 1:length(SiteIndex)){
+    temp.d2 <- ev.d[ev.d$SiteID==SiteIndex[k],]
+    aveZ0 <- mean(temp.d2$Z0[!is.na(temp.d2$Z0)])
+    ev.d$AveZ0[ev.d$SiteID==SiteIndex[k]] <- aveZ0
+  }
+  ev.d["AveUs"] <- NaN
+  for(j in 1:nrow(ev.d)){
+    iSiteD50 <- d50[d50[,1]==ev.d$SiteID[j],]
+    #粗度、摩擦速度算出
+    if(ev.d$WS_h[j] > ev.d$WS_m[j] && ev.d$WS_m[j] > ev.d$WS_l[j]){
+      # if(!(ev.d$WS_h[j] <= ev.d$WS_m[j] && ev.d$WS_m[j] <= ev.d$WS_l[j]) && ev.d$WS_h[j] >= 8 &&  ev.d$Event != 99){
+      iws <- c(ev.d$WS_h[j],ev.d$WS_m[j],ev.d$WS_l[j])
+      ih <- c(ev.d$Height_WM_h[j],ev.d$Height_WM_m[j],ev.d$Height_WM_l[j])/100
+      javeZ0 <- ev.d$AveZ0[j]
+      # if(j == 1){
+      #   plot(iws, ih, log = "y",xlim = c(0,max(ev.d$WS_h)),ylim =c(0.01,10))
+      # }else{
+      #   par(new = T)
+      #   plot(iws, ih, log = "y",xlim = c(0,max(ev.d$WS_h)),ylim =c(0.01,10))
+      #   
+      # }
+      ih <- log(ih)
+      
+      tmp.result <- lm((ih- javeZ0) ~0+ iws)
+      ev.d$AveUs[j] <- 0.4/as.numeric(tmp.result$coefficients[1])
+      # abline(tmp.result)
+      
+    }
+  }
   write.csv(ev.d, paste("SfZ0Us_",averate[i],"_sumdata.csv", sep = ""),row.names=FALSE)
-  setTxtProgressBar(pbi, i) 
+  print(averate[i]) 
 }
