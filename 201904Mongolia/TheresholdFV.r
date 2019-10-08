@@ -15,8 +15,8 @@ sitelev <- levels(sf.d$SiteID)
 sf.d$Event <- as.factor(sf.d$Event)
 eventlev <- levels(sf.d$Event)[levels(sf.d$Event)!="99"]
 
-result.df2 <- data.frame(matrix(rep(NA, 7), nrow=1))[numeric(0), ]
-colnames(result.df2) <- c("SiteID","Event","E", "Ut", "c","AveZ0","AveDev")
+result.df2 <- data.frame(matrix(rep(NA, 8), nrow=1))[numeric(0), ]
+colnames(result.df2) <- c("SiteID","Event","E", "Ut", "c","AveZ0","AveDev","SdDev")
 result.df2$SiteID <- as.character(result.df2$SiteID)
 result.df2$Event <- as.character(result.df2$Event)
 result.df2$E <- as.numeric(result.df2$E)
@@ -71,8 +71,8 @@ for(j in 1:length(sitelev)){
                        as.numeric(sum_sigE$iUt[which.min(sum_sigE$E)]), 
                        as.numeric(sum_sigE$ic[which.min(sum_sigE$E)]),
                        as.numeric(temp.d$AveZ0[1]) ,
-                       as.numeric(mean(temp.d$dev_n[!is.na(temp.d$dev_n)])))
-      colnames(t.2) <- c("SiteID","Event","E", "Ut", "c","AveZ0","AveDev")
+                       as.numeric(mean(temp.d$dev_n[!is.na(temp.d$dev_n)])), as.numeric(sd(temp.d$dev_n[!is.na(temp.d$dev_n)])))
+      colnames(t.2) <- c("SiteID","Event","E", "Ut", "c","AveZ0","AveDev","SdDev")
       result.df2 <- rbind(result.df2,t.2)
       i <- i +1
     }
