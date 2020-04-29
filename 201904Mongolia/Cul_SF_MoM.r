@@ -3,12 +3,12 @@ library(tcltk2)
 # path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
 # path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 
-path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
+# path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 # path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
 path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
-setwd(path2)
+setwd(path3)
 # averate <- c("60","180","300","600","1800")
-averate <- c("60","300")
+averate <- c("60")
 # 風速計の1サイトあたりの数（全サイトで等しい場合）
 nJ <- 3
 
@@ -18,8 +18,8 @@ nJ <- 3
 d50 <- read.csv("SiteParticle.csv",header=T)
 
 for(i in 1:length(averate)){
-# for(i in 1:5){
-  ev_filename = paste("Ev_",averate[i],"_sumdata.csv",sep="")
+  # for(i in 1:5){
+  ev_filename = paste("Ev_sumdata_",averate[i],"_T_P.csv",sep="")
   ev.d <- read.csv(ev_filename,header=T)
   ev.d["SF_gs"] <- NaN
   ev.d["SF_gs_1"] <- NaN
@@ -87,8 +87,8 @@ for(i in 1:length(averate)){
     }
     setTxtProgressBar(pbj, j) 
   }
-write.csv(ev.d, paste(path3,"/Sf_MoM_",averate[i],"_sumdata.csv", sep = ""),row.names=FALSE)
-print(averate[i]) 
+  write.csv(ev.d, paste(path3,"/Sf_MoM_",averate[i],"_sumdata.csv", sep = ""),row.names=FALSE)
+  print(averate[i]) 
 }
 
 lessangle <- function(ang1,ang2,lesv ){
