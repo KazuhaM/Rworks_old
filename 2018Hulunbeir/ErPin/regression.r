@@ -1,4 +1,5 @@
-setwd("E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/論文投稿/修論投稿/解析/ErosionPin_Veg")
+# setwd("E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/論文投稿/修論投稿/解析/ErosionPin_Veg")
+setwd("D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/論文投稿/修論投稿/解析/ErosionPin_Veg")
 #パッケージインストール
 pckname<-"segmented"
 if(require(pckname)){
@@ -111,7 +112,7 @@ o.sum$r.squared
 #windows()
 #par(mar = c(5.1, 4.5, 4.1, 2.1))
 plot(x6,y6,
-	xlab="Vegetation Coverage (%)",ylab="Erosion Pin (abs,mm)",
+	xlab="Vegetation coverage (%)",ylab="Erosion pin (abs,mm)",
 	cex.lab  = 1.5,       #  軸の説明の字の大きさを設定する
      	cex.axis = 1.5,      #  軸の数字等（ラベル）の大きさを設定する
      	cex.main = 1.8,     #  メインタイトルの字の大きさを設定する
@@ -131,25 +132,33 @@ plot(x8,y8,
      ann = F,axes = F
 )
 
-plot(o16,add=T,col=gray(0.6),lwd=2,lty=1)
-lines(o16,col=gray(0.6))
-mtext(signif(o16$psi[2],2), side = 1, line = 0, at = o16$psi[2],col=gray(0.5))
+plot(o16,add=T,col=gray(0),lwd=2,lty=1)
+segments(o16$psi[2]-1.96*o16$psi[3],-10,o16$psi[2]+1.96*o16$psi[3],-10,col=1,lty=1)
+points(o16$psi[2],-10,col=1,pch=16)
+# lines(o16,col=gray(0.6),pch=1)
+mtext(signif(o16$psi[2],2), side = 1, line = 0, at = o16$psi[2],col=1)
 
-plot(o17, add=T,col=gray(0.3),lwd=2,lty=1)
-lines(o17,col=gray(0.3))
-mtext(signif(o17$psi[2],2), side = 1, line = 0, at = o17$psi[2],col=gray(0.3))
+plot(o17, add=T,col=gray(0.6),lwd=2,lty=1)
+segments(o17$psi[2]-1.96*o17$psi[3],-16,o17$psi[2]+1.96*o17$psi[3],-16,col=1,lty=1)
+points(o17$psi[2],-16,col=1,pch=16)
+# lines(o17,col=gray(0.3),pch=4)
+mtext(signif(o17$psi[2],2), side = 1, line = 0, at = o17$psi[2],col=1)
 
-plot(o18, add=T,col=gray(0),lwd=2,lty=1)
-lines(o18,col=gray(0))
-mtext(signif(o18$psi[2],2), side = 1, line = 0, at = o18$psi[2],col=gray(0))
+plot(o18, add=T,col=gray(0.6),lwd=2,lty=2)
+segments(o18$psi[2]-1.96*o18$psi[3],-13,o18$psi[2]+1.96*o18$psi[3],-13,col=1,lty=1)
+points(o18$psi[2],-13,col=1,pch=16)
+# lines(o18,col=gray(0),pch=2)
+mtext(signif(o18$psi[2],2), side = 1, line = 0, at = o18$psi[2],col=1)
 
-plot(o,add=T,col='black',lwd=2,lty=4)
-lines(o,col='black',lty=4)
+plot(o,add=T,col=gray(0),lwd=2,lty=4)
+segments(o$psi[2]-1.96*o$psi[3],-7,o$psi[2]+1.96*o$psi[3],-7,col=1,lty=1)
+points(o$psi[2],-7,col=1,pch=16)
+# lines(o,col='black',lty=4,pch=5)
 mtext(signif(o$psi[2],2), side = 1, line = 1, at = o$psi[2],col=1)
 
-legend(locator(1), legend=c("2016","2017","2018"),col=gray(c(0.6,0.3,0)),
-       pch=c(1,4,2),cex  = 1.5)
-legend(locator(1), legend=c("3 years","2016","2017","2018"),col=gray(c(0,0.6,0.3,0)), lty=c(4,1,1,1),lwd=2,cex  = 1.5)
+legend(locator(1), legend=c("2016","2017","2018"),col=1,pch=c(1,4,2),cex  = 1.5)
+legend(locator(1), legend=c("2016-2018","2016","2017","2018"),col=gray(c(0,0,0.6,0.6)),
+       lty=c(4,1,1,2),lwd=2,cex  = 1.5,title ="Regression lines")
 
 
 #windows()

@@ -35,7 +35,7 @@ for(i in 1:1){
     if(ev.d$PC_10_1[j] == 99999){
       
       #Udo et al. 2008 の式
-      #中央粒径：ground surface (Ishizuka et al. 2012)
+      #中央粒径：ground surface (Ishizuka et al. 2012)←こちらを使用
       #中央粒径：saltation particle(abutaiti et al. 2013)
       ev.d$SF_gs[j] <- (2*2.5*(iSiteD50[,2]^3)*(ev.d$PC_10_2[j] + ev.d$PC_10_3[j]))/
         (3000*0.012^2*2*as.numeric(averate[i]))

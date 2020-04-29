@@ -1,9 +1,10 @@
 library(tcltk2)
 
 # path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
-# path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
+path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 
-path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
+# path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
+# path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
 setwd(path2)
 averate <- c("60","180","300","600","1800")
 
@@ -19,11 +20,6 @@ pbj <- txtProgressBar(min = 1, max = length(sitelev), style = 3)
 for(j in 1:length(sitelev)){
   for (k in 1:length(eventlev)) {
     boolplot <- TRUE
-    for(i in 1:1){
-      sf_filename = paste("SfZ0Us_",averate[i],"_sumdata.csv",sep="")
-      sf.d <- read.csv(sf_filename,header=T)
-      sf.d$Event <- as.factor(sf.d$Event)
-      
       temp.d <- sf.d[sf.d$SiteID == sitelev[j] & sf.d$Event == eventlev[k],]
 
       temp.d <-temp.d[!is.na(temp.d$Us),]
@@ -43,10 +39,9 @@ for(j in 1:length(sitelev)){
         plot(temp.d$Us,temp.d$WS_h, xlab = "", ylab = "",col = i,
              xlim = c(0,xmax), ylim = c(0,ymax))
       }
-    }
     if(boolplot){
-      # dev.copy(pdf, file=paste(sitelev[j],"_",eventlev[k],".pdf",sep=""), width = 10, height = 10)
-      # dev.off()
+      dev.copy(pdf, file=paste("U_Us_",sitelev[j],"_",eventlev[k],".pdf",sep=""), width = 10, height = 10)
+      dev.off()
     }
   }
   setTxtProgressBar(pbj, j) 

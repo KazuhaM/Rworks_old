@@ -8,15 +8,22 @@ setwd(path)
 averate <- c("60","180","300","600","1800")
 
 d.flist <- list.files(path, pattern="csv")
-d.flist300 <- d.flist[grep(averate,d.flist)]
+# d.flist300 <- d.flist[grep(averate,d.flist)]
 
 pc.col = 4
 wm.col = 6
 
 n <- 3 + pc.col + wm.col*1.5 
 
+# 
+eventperiod <- read.csv(paste(path2,"EventPeriod.csv",sep="/"))
+eventperiod$Start <- as.POSIXct(eventperiod$Start)
+eventperiod$End <- as.POSIXct(eventperiod$End)
 
-######全サイトデータ結合########################################
+colpalette <- c("black","chartreuse","orange","cyan2","blueviolet","pink","wheat","salmon2")
+
+
+######全サイトデータ結合######################################## 
 for(k in 1 : length(averate)){
   d.flist300 <- d.flist[grep(paste(averate[k],"_",sep=""),d.flist)]
   result.df <- data.frame(matrix(rep(NA, n), nrow=1))[numeric(0), ]
@@ -25,13 +32,14 @@ for(k in 1 : length(averate)){
                            "Height_WM_h", "Height_WM_m", "Height_WM_l")
   for(i in 1 : length(d.flist300)){
     d <- read.csv(d.flist300[i],header=T)
+    d$Time <- as.POSIXct(d$Time)
     dname <- strsplit(d.flist300[i], "_")
     dname <- sub(".csv", "", dname[[1]][2])
     d.pc <- d[,c(1, grep("PC",colnames(d)))]
     d.pc <- d.pc[, colnames(d.pc) != "PC18_50"]
     d.ws <- d[,c(1, grep("WS",colnames(d)))]
     d.wd <- d[,c(1, grep("WD",colnames(d)))]
-    
+
     height.wm <- as.numeric(sub("WS_","",colnames(d.ws)[2:length(colnames(d.ws))]))
     height.wm.mat <- matrix(0,nrow(d),length(height.wm))
     for(j in 1 : nrow(d)){
@@ -49,45 +57,80 @@ for(k in 1 : length(averate)){
     colnames(temp.df) <- colnames(result.df)
     result.df = rbind(result.df,temp.df)
     
-    par(mfrow=c(3,1))
+    # par(mfrow=c(3,1))
+    layout(matrix(c(1,1,2,2,3,3,4), nrow = 7, ncol = 1, byrow = TRUE))
     #drifting sands
-    ts.plot(d.pc[2],gpars=list(xlab="Time", ylab="Drifting Sands(n/s)", main = paste(averate[k],"_", dname,sep="")),
-            ylim = c(0,max(d.pc[,2:ncol(d.pc)])),col=1) 
+    plot(d.pc$Time,d.pc[,2],xlab="", ylab="Drifting Sands(n/s)", main = paste(averate[k],"_", dname,sep=""),
+         type="l", xaxt="n",ylim = c(0,max(d.pc[,2:ncol(d.pc)])),col=1) 
+    axis.POSIXct(side=1,at=seq(d.pc[1,1], d.pc[nrow(d.pc),1],
+                               "1 hour"), las=2, format="%m/%d %H:%M")
     for(j in 3:ncol(d.pc)){
       par(new = T)
-      ts.plot(d.pc[j],gpars=list(xlab="", ylab=""),
+      plot(d.pc$Time,d.pc[,j],xlab="", ylab="",type="l", xaxt="n",
               ylim = c(0,max(d.pc[,2:ncol(d.pc)])),col=j-1)
     }
-    legend(max(as.ts(d[,1]))*0.9,max(d.pc[,2:ncol(d.pc)]),colnames(d.pc)[2:ncol(d.pc)],lty=1, 
-           col =1:(ncol(d.pc)-1))
-    
+
     #wind speed
-    ts.plot(d.ws[2],gpars=list(xlab="Time", ylab="Wind Speed(m/s)"),
+    plot(d.ws$Time,d.ws[,2],xlab="", ylab="Wind Speed(m/s)",type="l", xaxt="n",
             ylim = c(0,max(d.ws[,2:ncol(d.ws)])),col=1)
-    
+    axis.POSIXct(side=1,at=seq(d.ws[1,1], d.ws[nrow(d.ws),1],
+                               "1 hour"), las=2, format="%m/%d %H:%M")
     for(j in 3:ncol(d.ws)){
       par(new = T)
-      ts.plot(d.ws[j],gpars=list(xlab="", ylab=""),
+      plot(d.ws$Time,d.ws[,j],xlab="", ylab="",type="l", xaxt="n",
               ylim = c(0,max(d.ws[,2:ncol(d.ws)])),col=j -1)
     }
-    legend(max(as.ts(d[,1]))*0.9,max(d.ws[,2:ncol(d.ws)]),colnames(d.ws)[2:ncol(d.ws)],lty=1,
-           col =1:(ncol(d.ws)-1))
-    
+
     #wind dir.
-    ts.plot(d.wd[2],gpars=list(xlab="Time", ylab="Wind Direction(degree)"),
-            ylim = c(0,max(d.wd[,2:ncol(d.wd)])),col=1)
+    plot(d.wd$Time, d.wd[,2], xlab="", ylab="Wind Direction(degree)",
+            ylim = c(0,max(d.wd[,2:ncol(d.wd)])),col=1,type="l", xaxt="n")
+    axis.POSIXct(side=1,at=seq(d.wd[1,1], d.wd[nrow(d.wd),1],
+                               "1 hour"), las=2, format="%m/%d %H:%M")
     
     for(j in 3:ncol(d.wd)){
       par(new = T)
-      ts.plot(d.wd[j],gpars=list(xlab="", ylab=""),
-              ylim = c(0,max(d.wd[,2:ncol(d.wd)])),col=j -1)
+      plot(d.wd$Time,d.wd[,j],xlab="", ylab="",
+              ylim = c(0,max(d.wd[,2:ncol(d.wd)])),col=j -1,type = "l", xaxt="n")
     }
-    legend(max(as.ts(d[,1]))*0.9,max(d.wd[,2:ncol(d.wd)]),colnames(d.wd)[2:ncol(d.wd)],lty=1,
-           col =1:(ncol(d.wd)-1))
+    par(xpd=T)
+    legend(par()$usr[1],par()$usr[4]+70,colnames(d.ws)[2:ncol(d.ws)],lty=1,
+           ncol =ncol(d.ws)-1,col=1:(ncol(d.ws)-1))
+    legend((par()$usr[1]+par()$usr[2])/2,par()$usr[4]+70,
+           paste("ev",eventperiod$Event,sep = ""),lty=1,lwd = 2,
+           col =colpalette[2:(nrow(eventperiod)+1)],ncol=nrow(eventperiod))
+    par(xpd=F)
     abline(h = 120)
     abline(h = 240)
     
-    dev.copy(pdf, file=paste(averate[k],"_", dname,".pdf",sep=""), width = 10, height = 10)
+    # time --------------------------------------------------------------------
+    
+    # Time
+    timescale <- NULL
+    # timescale <- data.frame(time = 1:length(d$Time), value = rep(4,length(d$Time)))
+    # 時刻、昼・夜、イベント判定（イベント期間以外が0）
+    timescale <- data.frame(time = d$Time, value = rep(2,length(d$Time)), event = rep(0,length(d$Time)))
+    ## 昼を4に（赤色）(夜を2)
+    timetest<-ymd_hms(d$Time)
+    timetest<- hms(paste(hour(timetest),minute(timetest),second(timetest),sep=":"))
+    sunrise <- hm("05:42")
+    sunset <- hm("20:09")
+    timescale$value[timetest>sunrise & timetest<sunset] <- 4
+
+    for (j in 1:nrow(eventperiod)) {
+      timescale$event[timescale$time > eventperiod$Start[j] & 
+                        timescale$time < eventperiod$End[j]] <- j 
+    }
+    
+    # timescale$value[timetest>sunrise & timetest<sunset] <- 0
+    plot(timescale$time,timescale$value,ylim=c(0,3),type = "h",xlab="",ylab="timescale",
+         xaxt = "n",col = 6-timescale$value)
+    par(new = T)
+    plot(timescale$time,rep(1,nrow(timescale)),col = colpalette[timescale$event+1],xlab = "",ylim=c(0,3), 
+         ylab = "", type = "h", xaxt = "n")
+    axis.POSIXct(side=1,at=seq(d$Time[1], d$Time[length(timescale$time)],
+                               "1 hour"), las=2, format="%m/%d %H:%M")
+    
+    dev.copy(pdf, file=paste(averate[k],"_", dname,".pdf",sep=""), width = 20, height = 10)
     dev.off()
   }
   
