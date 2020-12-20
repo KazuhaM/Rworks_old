@@ -2,14 +2,16 @@ library(tcltk2)
 
 # path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
 # path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
-path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
+# path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
+path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+
 # path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 setwd(path2)
-averate <- c("60","180","300","600","1800")
-
+# averate <- c("60","180","300","600","1800")
+averate <- c("60","600")
 ############################臨界風速等算出###################
 i <- 1
-sf_filename = paste("SfZ0Us_",averate[i],"_sumdata.csv",sep="")
+sf_filename = paste("Z0Us_MoM_",averate[i],"_sumdata.csv",sep="")
 sf.d <- read.csv(sf_filename,header=T)
 sitelev <- levels(sf.d$SiteID)
 sf.d$Event <- as.factor(sf.d$Event)
@@ -19,8 +21,8 @@ pbi <- txtProgressBar(min = 1, max = length(sitelev), style = 3)
 for(j in 1:length(sitelev)){
   for (k in 1:length(eventlev)) {
     boolplot <- TRUE
-    for(i in 3:3){
-      sf_filename = paste("SfZ0Us_",averate[i],"_sumdata.csv",sep="")
+    for(i in 1:1){
+      sf_filename = paste("Z0Us_MoM_",averate[i],"_sumdata.csv",sep="")
       sf.d <- read.csv(sf_filename,header=T)
       sf.d$Event <- as.factor(sf.d$Event)
       
@@ -45,7 +47,7 @@ for(j in 1:length(sitelev)){
       }
     }
     if(boolplot){
-      dev.copy(pdf, file=paste(sitelev[j],"_",eventlev[k],".pdf",sep=""), width = 10, height = 10)
+      dev.copy(pdf, file=paste(path2,"/Us_SF/",sitelev[j],"_",eventlev[k],".pdf",sep=""), width = 10, height = 10)
       dev.off()
     }
   }

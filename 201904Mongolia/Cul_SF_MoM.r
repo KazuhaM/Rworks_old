@@ -4,19 +4,23 @@ library(tcltk2)
 # path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 
 # path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
-# path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
-path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
+# path3 <- "E:/Clouds/OneDrive - g.chtecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
+# path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
+path3 <- "D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2020\00working\1102MongoliaAnalysis7\Cul\recul_event"
 setwd(path3)
 # averate <- c("60","180","300","600","1800")
-averate <- c("60")
+# averate <- c("60")
+averate <- c("60","600")
 # 風速計の1サイトあたりの数（全サイトで等しい場合）
 nJ <- 3
+
+path4 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
 
 ############################臨界風速等算出###################
 
 #粒径データ
-d50 <- read.csv("SiteParticle.csv",header=T)
-
+# d50 <- read.csv("SiteParticle.csv",header=T)
+d50 <- read.csv(paste(path4,"/SiteParticle.csv",sep=""),header=T)
 for(i in 1:length(averate)){
   # for(i in 1:5){
   ev_filename = paste("Ev_sumdata_",averate[i],"_T_P.csv",sep="")
@@ -48,46 +52,47 @@ for(i in 1:length(averate)){
     if(p1 == 99999){
       
       #Udo et al. 2008 の式
-      #中央粒径：ground surface (Ishizuka et al. 2012)←こちらを使用
-      #中央粒径：saltation particle(abutaiti et al. 2013)
+      #中央粒径：ground surface (Ishizuka et al. 2012)←こちらを使用→変更
+      #中央粒径：saltation particle(abutaiti et al. 2013)←こちらを使用（20201119gsが大きすぎるため）
+      # 砂の密度　2.5 g/cm^3 Kimura and Shinoda, 2010
       ev.d$SF_gs[j] <- (2*2.5*(gs^3)*(p2 + p3))/
-        (3000*0.012^2*2*ar)
+        (3000*0.012^2*2)
       ev.d$SF_gs_2[j] <- (2*2.5*(gs^3)*p2)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       ev.d$SF_gs_3[j] <- (2*2.5*(gs^3)*p3)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       
       ev.d$SF_sl[j] <- (2*2.5*(slt^3)*(p2 + p3))/
-        (3000*0.012^2*2*ar)
+        (3000*0.012^2*2)
       ev.d$SF_sl_2[j] <- (2*2.5*(slt^3)*p2)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       ev.d$SF_sl_3[j] <- (2*2.5*(slt^3)*p3)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       
       
     } else{
       ev.d$SF_gs[j] <- (2*2.5*(gs^3)*(p1 + p2 + p3))/
-        (3000*0.012^2*3*ar)
+        (3000*0.012^2*3)
       ev.d$SF_gs_1[j] <- (2*2.5*(gs^3)*p1)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       ev.d$SF_gs_2[j] <- (2*2.5*(gs^3)*p2)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       ev.d$SF_gs_3[j] <- (2*2.5*(gs^3)*p3)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       
       ev.d$SF_sl[j] <- (2*2.5*(slt^3)*(p1 + p2 + p3))/
-        (3000*0.012^2*3*ar)
+        (3000*0.012^2*3)
       ev.d$SF_sl_1[j] <- (2*2.5*(slt^3)*p1)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       ev.d$SF_sl_2[j] <- (2*2.5*(slt^3)*p2)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       ev.d$SF_sl_3[j] <- (2*2.5*(slt^3)*p3)/
-        (3000*0.012^2*ar)
+        (3000*0.012^2)
       
     }
     setTxtProgressBar(pbj, j) 
   }
-  write.csv(ev.d, paste(path3,"/Sf_MoM_",averate[i],"_sumdata.csv", sep = ""),row.names=FALSE)
+  write.csv(ev.d, paste(path4,"/Sf_MoM_",averate[i],"_sumdata.csv", sep = ""),row.names=FALSE)
   print(averate[i]) 
 }
 

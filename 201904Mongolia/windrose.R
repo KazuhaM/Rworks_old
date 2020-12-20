@@ -18,11 +18,14 @@ WRdata <- WRdata[,c(1,2,3,8,11,14)]
 events <- levels(as.factor(WRdata$Event))
 events <- events[-length(events)]
 sites <- levels(WRdata$SiteID)
+aveWD <- data.frame("site"=NA,"event"=NA,"avarageWS"=NA,"avarageWD"=NA)
 
 for (a in 1:length(events)) {
   for (b in 1:length(sites)) {
     temp.WRdata <- WRdata[WRdata$Event == events[a] & WRdata$SiteID == sites[b],]
     if (nrow(temp.WRdata) != 0) {
+      
+      # 風配図作成
       counttime <- nrow(temp.WRdata)
       wr.break <- seq(0, 360, length = 33)
       Windrose <- rbind(numeric(16),1:16)
@@ -69,10 +72,25 @@ for (a in 1:length(events)) {
                  #title = paste("Windrose at Site",lev[[4]][k]," Event",l,sep=""),
                  plwd=2 ,col = 1:5,
                  caxislabels=paste(round(seq(0,max(Windrose),length = 6),1),"%",sep=""))
-      dev.copy(pdf, file=paste(path2,"/","Windrose_",sites[b],"_Ev",a,
+      dev.copy(pdf, file=paste(path2,"/Windrose/Windrose_",sites[b],"_Ev",a,
                               ".pdf",sep=""), width = 10, height = 10)
       dev.off()
       
+      # 平均風向（ベクトル平均）算出
+      temp.WRdata$WD_h <- 90 - temp.WRdata$WD_h 
+      temp.WRdata$vx <- temp.WRdata$WS_h * cos(pi*temp.WRdata$WD_h/180)
+      temp.WRdata$vy <- temp.WRdata$WS_h * sin(pi*temp.WRdata$WD_h/180)
+      aveWind <- c(sum(temp.WRdata$vx),sum(temp.WRdata$vy))/nrow(temp.WRdata)
+      if (aveWind[1]< 0) {
+        aveWind <- c(sqrt(aveWind[1]^2+aveWind[2]^2),
+                     180*atan(aveWind[2]/aveWind[1])/pi + 180)
+      }else{
+        aveWind <- c(sqrt(aveWind[1]^2+aveWind[2]^2),
+                     180*atan(aveWind[2]/aveWind[1])/pi)
+      }
+      aveWind[2] <- 90 - aveWind[2]
+      
+      aveWD <- rbind(aveWD,c(sites[b],events[a],aveWind))
     }
   }
 }
@@ -89,3 +107,6 @@ plot.new()
 legend(0,0.1, row.names(Windrose[1:5,]),lty=1,col=1:5,cex=1.2,ncol=5,lwd = 2)
 dev.copy(pdf, file=paste(path2,"/","WrLegend.pdf",sep=""), width = 10, height = 10)
 dev.off()
+
+write.csv(aveWD, paste(path2,"/AveWind_sumdata.csv",sep = ""),row.names=FALSE)
+

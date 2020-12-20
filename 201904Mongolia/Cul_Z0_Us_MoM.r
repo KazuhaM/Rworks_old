@@ -5,13 +5,16 @@ library(tcltk2)
 
 # path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 # path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
-path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
-setwd(path3)
+# path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
+path4 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+setwd(path4)
 # averate <- c("60","180","300","600","1800")
-# averate <- c("60","300")
-averate <- c("60")
+averate <- c("60","600")
+# averate <- c("60")
 # 風速計の1サイトあたりの数（全サイトで等しい場合）
 nJ <- 3
+
+
 
 ############################粗度、摩擦速度、地面修正量算出###################
 
@@ -19,8 +22,8 @@ nJ <- 3
 # d50 <- read.csv("SiteParticle.csv",header=T)
 
 for(i in 1:length(averate)){
-# for(i in 1:5){
-  ev_filename = paste("Sf_MoM_",averate[i],"_sumdata.csv",sep="")
+  # for(i in 1:5){
+  ev_filename = paste(path4,"/Sf_MoM_",averate[i],"_sumdata.csv",sep="")
   ev.d <- read.csv(ev_filename,header=T)
   ev.d["Z0"] <- NaN
   ev.d["Us"] <- NaN
@@ -29,6 +32,7 @@ for(i in 1:length(averate)){
   ev.d["n"] <- NaN
   
   #粗度、摩擦速度算出
+  ev.d$SiteID <- as.factor(ev.d$SiteID)
   SiteIndex <- levels(ev.d$SiteID)
   pbk <- txtProgressBar(min = 1, max = length(SiteIndex), style = 3)
   for(k in 1:length(SiteIndex)){
@@ -67,8 +71,8 @@ for(i in 1:length(averate)){
           result.df.bi <- data.frame(matrix(rep(NA, nI), nrow=1))[numeric(0), ]
           colnames(result.df2) <- c("R","d0","z0","n")
           colnames(result.df.bi) <- row.names(temp.d2)
-          # for (a_d0 in seq(0, min(temp.d2$Height_WM_l),by = 0.01)) {
-          for (a_d0 in 0:0) {
+          for (a_d0 in seq(0, min(temp.d2$Height_WM_l),by = 0.01)) {
+          # for (a_d0 in 0:0) {
             # a = sigma(i = 1 to I){Ai - Di*Eii/Ci}/(N -sigma(i = 1 to I){Di^2 / Ci})
             # bi = (Ei - Di * a)/Ci
             # jは高度。iは各データ回の番号
@@ -129,7 +133,7 @@ for(i in 1:length(averate)){
           }
           plot(result.df2$d0,result.df2$R)
           dev.copy(pdf, 
-                   file=paste(path3,"/",averate[i],"_", SiteIndex[k],"_",j,"_R_d0.pdf",sep=""), 
+                   file=paste(path4,"/R_MoM/",averate[i],"_", SiteIndex[k],"_",j,"_R.pdf",sep=""), 
                    width = 10, height = 10)
           dev.off()
           
@@ -148,8 +152,8 @@ for(i in 1:length(averate)){
       }
     }
   }
-# write.csv(ev.d, paste(path3,"/Z0Us_MoM_",averate[i],"_sumdata.csv", sep = ""),row.names=FALSE)
-write.csv(ev.d, paste(path3,"/Z0Us_MoM_",averate[i],"_sumdata_d_0.csv", sep = ""),row.names=FALSE)
+write.csv(ev.d, paste(path4,"/Z0_MoM_",averate[i],"_sumdata.csv", sep = ""),row.names=FALSE)
+# write.csv(ev.d, paste(path3,"/Z0Us_MoM_",averate[i],"_sumdata_d_0.csv", sep = ""),row.names=FALSE)
 print(averate[i]) 
 }
 

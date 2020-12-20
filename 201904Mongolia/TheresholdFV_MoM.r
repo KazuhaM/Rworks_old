@@ -3,21 +3,29 @@ options(scipen=5)
 # path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
 # path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 
-path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
+# path2 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 # path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
 
-path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1401春期モンゴル解析4"
-setwd(path2)
-averate <- c("60","180","300","600","1800")
+# path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1401春期モンゴル解析4"
+# path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
+path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+
+setwd(path3)
+# averate <- c("60","180","300","600","1800")
+averate <- c("60")
+# averate <- c("60","600")
 rateNo <- 1
 
 ############################臨界風速等算出###################
 
 # データファイル読み込み
-sf_filename = paste(path3,"/SfZ0Us_MoM_",averate[rateNo],"_sumdata.csv",sep="")
+# sf_filename = paste(path3,"/Z0Us_MoM_",averate[rateNo],"_sumdata_d_0.csv",sep="")
+sf_filename = paste(path3,"/Z0Us_MoM_",averate[rateNo],"_sumdata.csv",sep="")
+
 sf.d <- read.csv(sf_filename,header=T)
-# データファイル基礎調整
+# データファイル基礎調整wo
 # サイトリスト
+sf.d$SiteID <- as.factor(sf.d$SiteID)
 sitelev <- levels(sf.d$SiteID)
 # イベントリスト
 sf.d$Event <- as.factor(sf.d$Event)
@@ -36,19 +44,26 @@ result.df2$AveDev <- as.numeric(result.df2$AveDev)
 
 par(mfrow=c(1,1))
 # 値cのサイトごとの初期値
-cseq <- c(0.000000001,0.00000001,0.0000001,0.000001,0.00001,0.0001,0.001,0.01,0.1,1)
+# cseq <- c(0.000000001,0.00000001,0.0000001,0.000001,0.00001,0.0001,0.001,0.01,0.1,1)
+cseq <- 10^(-20:20)
 # icsq <-c(2,3,3,6,6,6,6,6,3,4,3,3,3,0,3,2,3,2,2,3,4,4,3,2,3,3,4)+1
-icsq <- rep(6,27) + c(1,2,2,3,2,3,2,4,0,1,-1,2,1,-3,0,1,1,0,1,0,4,3,0,0,3,0,3)
+icsq <- rep(17,30) +c(3,	4,	1,	3,	3,	3,	4,	4,	3,	1,	1,	0,	2,	2,	1,	0,	0,	0,	0,	2,	0,	3,	2,	5,	4,	0,	-1,	5,	2,	3
+
+
+
+
+)
+
 
 i <- 1
 # サイト、イベントごとに解析
 for(j in 1:length(sitelev)){
   for (k in 1:length(eventlev)) {
-    sum_sigE <- data.frame(matrix(rep(NA, 3), nrow=1))[numeric(0), ]
+    sum_sigE <- data.frame(matrix(rep(NA, 3), nrow=1))[numeric(0), ] #一時計算結果格納データフレーム作成
     colnames(sum_sigE) <- c("E", "iUt", "ic")
     
-    temp.d <- sf.d[sf.d$SiteID == sitelev[j] & sf.d$Event == eventlev[k],]
-    if(nrow(temp.d)!=0){
+    temp.d <- sf.d[sf.d$SiteID == sitelev[j] & sf.d$Event == eventlev[k],] #該当のサイト－イベントのデータを取り出す
+    if(nrow(temp.d)!=0 & sum(!is.na(temp.d$Us))!=0){ #該当するデータがなかった場合、U_*が求められなかったサイトの場合を除く
       temp.d <- temp.d[order(temp.d$Us),]
       temp.d["dev_n"] <- NaN
       
@@ -60,7 +75,8 @@ for(j in 1:length(sitelev)){
       for(iut in seq(0.01,max(temp.d$Us[!is.na(temp.d$Us)]),by = 0.01)){
         for (ic in seq(cseq[icsq[i]],100*cseq[icsq[i]],by = cseq[icsq[i]])) {
           qmodel <- ic*(1-(iut/temp.d$Us[!is.na(temp.d$Us)])^2)*temp.d$Us[!is.na(temp.d$Us)]^3
-          e = (temp.d$SF_gs[!is.na(temp.d$Us)] - qmodel)^2
+          e = (temp.d$SF_sl[!is.na(temp.d$Us)] - qmodel)^2
+          # e = (temp.d$SF_gs[!is.na(temp.d$Us)] - qmodel)^2
           sum_sigE <- rbind(sum_sigE, c(sum(e[!is.na(e)]), iut, ic)) 
           setTxtProgressBar(pbj, counta) 
           counta <- counta +1
@@ -107,4 +123,33 @@ for(j in 1:length(sitelev)){
     print(paste(j,"番目のサイト",k,"番目のイベント",sep=""))
   }   
 }
+# write.csv(result.df2, paste(path3,"/Ust_MoM_",averate[rateNo],"_d_0.csv", sep = ""),row.names=FALSE)
 write.csv(result.df2, paste(path3,"/Ust_MoM_",averate[rateNo],".csv", sep = ""),row.names=FALSE)
+
+
+
+#####サイト-イベントごとのusのNA率確認#########
+# sf.d
+na.rate <- data.frame(matrix(rep(NA, 4), nrow=1))
+na.colname <- c("SiteID","Event","n", "NotA")
+
+colnames(na.rate) <- na.colname
+na.rate <- na.rate[-1,]
+for(isite in sitelev){
+  for (iev in eventlev) {
+    temp.na <- sf.d[sf.d$SiteID == isite & sf.d$Event == iev,]
+    if(nrow(temp.na) != 0){
+      na.rate <- rbind(na.rate, c(isite, iev, nrow(temp.na),
+                                  sum(is.na(temp.na$Us))))
+      
+      colnames(na.rate) <- na.colname
+    }
+  }
+}
+na.rate$n <- as.integer(na.rate$n)
+na.rate$NotA <- as.integer(na.rate$NotA)
+
+na.rate["NArate"] <- 100 * na.rate$NotA / na.rate$n
+write.csv(na.rate, paste(path3,"/Us_NArate_check.csv", sep = ""),row.names=FALSE)
+
+
