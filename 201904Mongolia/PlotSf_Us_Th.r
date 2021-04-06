@@ -5,7 +5,8 @@ library(tcltk2)
 
 # path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 # path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
-path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+# path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1301MongoliaAnalysis8/NsiteRecul" #Nsite only
 
 
 setwd(path2)
@@ -62,7 +63,7 @@ for(j in 1:length(sitelev)){
         output <- rep(NA, n.len)
         for(i in 1 : n.len){
           if(x[i] >= th.d$Ut){
-            output[i] = th.d$c*(1-(th.d$Ut/x[i])^2)*x[i]^3
+            output[i] = th.d$D*(1-(th.d$Ut/x[i])^2)*x[i]^3
           }else{
             output[i] = 0
           }

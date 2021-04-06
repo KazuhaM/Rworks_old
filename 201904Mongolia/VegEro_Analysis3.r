@@ -1,14 +1,16 @@
 
 # library import ----------------------------------------------------------
-
+library(MuMIn) # AICのためのdredge関数
 library(beeswarm)
+library(car) # 多重共線性 virの算出
+library(pwr) # 検出力計算　重回帰はpwr.f2.test
 # Init setting ------------------------------------------------------------
 # work directory
-# path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
-path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+# path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
 setwd(path3)
-# path4 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1202PhDthesis_submission/Fig"
-path4 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1202PhDthesis_submission/Fig"
+path4 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1202PhDthesis_submission/Fig"
+# path4 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1202PhDthesis_submission/Fig"
 # data source
 d <- read.csv("Veg_EroAnalysis14.csv", header =T)
 d.b <-read.csv("Veg_EroAnalysis14_B.csv", header =T)
@@ -46,7 +48,7 @@ veg.cond <- cbind(d$VegCover,d$VegComHgt,d$AsioV5range)
 colnames(veg.cond) <- c("VegCover","VegComHgt","AsioV5range")
 row.names(veg.cond) <- d$ID
 
-# クラスター分類
+# クラスター分類J
 gnum_st <- 3
 clus<-hclust(dist(veg.cond),"ward.D2") #ウォード法改で
 par(mar = c(5,6,3,2),family = family_serif)
@@ -91,9 +93,17 @@ summary(result.lmD)
 result.lmD <- glm(D ~ (VegComHgt +  AsioV5range)^2,
                   data = d2,family = Gamma(link = log))
 summary(result.lmD)
-result.lmD <- glm(D ~ VegComHgt,
-                  data = d2,family = Gamma(link = log))
+result.lmD <- glm(D ~ VegComHgt, data = d2,
+                  family = Gamma(link = log))
 summary(result.lmD)
+
+# result.lmD2 <- lm(D ~ VegCover*AsioV5range, data = d2)
+# summary(result.lmD)
+
+# GLM決定係数算出
+library(performance)
+r2(result.lmD)
+
 # library(MuMIn)
 # options(na.action = "na.fail")
 # dredge(result.lmD,rank="AIC")
@@ -129,6 +139,130 @@ lines(x,exp(eta.pred))
 # par(mar = c(5,6,3,2))
 
 
+# library("rgl")
+# plot3d(d2$D, d2$VegCover,d2$AsioV5range)
+# test.cr <- d2$VegComHgt * d2$AsioV5range
+# plot(d2$D~test.cr)
+# d2[d2$clus.group ==2,"AsioV5range" ]
+
+# plot(D ~ VegCover, data = d2,log = "y")
+# plot(D ~ Z0, data = d2)
+# plot(VegComHgt ~ VegCover , data = d2)
+
+
+# 回帰やプロットで色々試すところ ---------------------------------------------------------
+
+# 回帰系でいろいろ試しているところ
+# 係数cについて
+plot(D ~ VegCover, data = d2,col = rainbow(8)[round(d2$AsioV5range,0)],cex = 2,pch = 16)
+legend(30,12,title  ="range",1:max(round(d2$AsioV5range,0)),col = rainbow(8)[1:max(round(d2$AsioV5range,0))],pch=15,
+       cex = 1.2)
+
+range.t <- 4
+plot(D ~ VegCover, data = d2[d2$AsioV5range<=range.t,],col = 2,cex = 2,pch = 15
+     ,ylim = c(0,14),xlim = c(0,47))
+par(new =T)
+plot(D ~ VegCover, data = d2[d2$AsioV5range>range.t,],col = 3,cex = 2,pch = 16
+     ,ylim = c(0,14),xlim = c(0,47))
+legend(30,12,title  =range.t,1:max(round(d2$AsioV5range,0)),col = rainbow(8)[1:max(round(d2$AsioV5range,0))],pch=15,
+       cex = 1.2)
+
+range.t <- 4
+plot(D ~ VegComHgt, data = d2[d2$AsioV5range<=range.t,],col = 2,cex = 2,pch = 15
+     ,ylim = c(0,14),xlim = c(0,18))
+par(new =T)
+plot(D ~ VegComHgt, data = d2[d2$AsioV5range>range.t,],col = 3,cex = 2,pch = 16
+     ,ylim = c(0,14),xlim = c(0,18))
+
+plot(VegCover~AsioV5range, data =d2,cex = 2,pch = 15) 
+
+plot(D~AsioV5range, data =d2,cex = 2,pch = 15) 
+plot(D~AsioV5range, data =d2[d2$D<4,],cex = 2,pch = 15) 
+
+plot(D ~ VegComHgt, data = d2[d2$D<4,],col = 2,cex = 2,pch = 15
+     ,ylim = c(0,4),xlim = c(0,18))
+
+plot(D ~ VegComHgt, data = d2,col = d2$clus.group,
+     cex = 2,pch = 15,xlim = c(0,20))
+legend(14,12,title  ="group",levels(d2$clus.group),
+       col = as.integer(levels(d2$clus.group)),pch=15,
+       cex = 1.2)
+
+plot(AsioV5range ~ VegCover, data = d2)
+
+# 粗度について
+plot(Z0 ~ VegCover, data = d2,col = rainbow(8)[round(d2$AsioV5range,0)],
+     cex = 2,pch = 16,log="y")
+legend(30,0.01,title  ="range",1:max(round(d2$AsioV5range,0)),
+       col = rainbow(8)[1:max(round(d2$AsioV5range,0))],pch=15,
+       cex = 1.2)
+
+range.t <- 5
+plot(Z0 ~ VegCover, data = d2[d2$AsioV5range<=range.t,],col = 2,cex = 2,pch = 15
+     ,ylim = c(0,0.012),xlim = c(0,47))
+par(new =T)
+plot(Z0 ~ VegCover, data = d2[d2$AsioV5range>range.t,],col = 3,cex = 2,pch = 16
+     ,ylim = c(0,0.012),xlim = c(0,47))
+legend(30,12,title  =range.t,1:max(round(d2$AsioV5range,0)),col = rainbow(8)[1:max(round(d2$AsioV5range,0))],pch=15,
+       cex = 1.2)
+
+range.t <- c(3,5)
+plot(Z0 ~ VegComHgt, data = d2[d2$AsioV5range<=range.t[1],],col = 2,cex = 2,pch = 15
+     ,ylim = c(0.0001,0.012),xlim = c(0,18),log="y")
+par(new =T)
+plot(Z0 ~ VegComHgt, data = d2[d2$AsioV5range<=range.t[2]&d2$AsioV5range>range.t[1],],
+     col = 3,cex = 2,pch = 16
+     ,ylim = c(0.0001,0.012),xlim = c(0,18),log="y")
+par(new =T)
+plot(Z0 ~ VegComHgt, data = d2[d2$AsioV5range>range.t[2],],col = 4,cex = 2,pch = 16
+     ,ylim = c(0.0001,0.012),xlim = c(0,18),log="y")
+legend(0,0.001,title  ="range",c("<=3","3<,<=5","5<"),col = 2:4,pch=15,
+       cex = 1.2)
+
+
+plot(Z0 ~ VegComHgt, data = d2[d2$clus.group==1,],col = 2,cex = 2,pch = 15
+     ,ylim = c(0,0.012),xlim = c(0,18))
+par(new =T)
+plot(Z0 ~ VegComHgt, data = d2[d2$clus.group==2,],
+     col = 3,cex = 2,pch = 16
+     ,ylim = c(0,0.012),xlim = c(0,18))
+par(new =T)
+plot(Z0 ~ VegComHgt, data = d2[d2$clus.group==3,],col = 4,cex = 2,pch = 16
+     ,ylim = c(0,0.012),xlim = c(0,18))
+
+plot(Z0~AsioV5range, data =d2,cex = 2,pch = 15,log ="y") 
+plot(Z0~AsioV5range, data =d2[d2$D<4,],cex = 2,pch = 15) 
+
+plot(Z0 ~ VegComHgt, data = d2[d2$D<4,],col = 2,cex = 2,pch = 15
+     ,ylim = c(0,4),xlim = c(0,18))
+
+plot(Z0 ~ VegComHgt, data = d2,col = d2$clus.group,
+     cex = 2,pch = 15,xlim = c(0,20))
+legend(14,12,title  ="group",levels(d2$clus.group),
+       col = as.integer(levels(d2$clus.group)),pch=15,
+       cex = 1.2)
+
+result.lmZ <- glm(Z0 ~ (VegComHgt+VegCover+AsioV5range)^2, data = d2,
+                  family = Gamma)
+summary(result.lmZ)
+
+result.lmZ <- lm(Z0 ~ (VegComHgt+VegCover+AsioV5range), data = d2)
+summary(result.lmZ)
+
+test.z <-  d2$AsioV5range / (d2$VegComHgt/100)
+
+test.z2 <- d2$Z0 
+result.lmZ2 <- lm(test.z2 ~ test.z)
+summary(result.lmZ2)
+plot(test.z2~test.z)
+plot(test.z~d2$clus.group,ylim = c(0,80 ))
+result.lm.c <-  glm(d2$D ~ test.z,
+                    family = Gamma(link = log))
+
+# plot(D ~ VegComHgt, data = d2)
+# plot(AsioV5range~ VegComHgt,data = d2)
+# hist(d2$D)
+
 
 
 # Analysis about others of D ----------------------------------------------
@@ -139,6 +273,8 @@ d2.logz$Z0 <- log(d2.logz$Z0)
 result.lmUst <- lm(Ut ~ VegCover + AsioV5range  + VegComHgt + Z0, data = d2.logz)
 summary(result.lmUst)
 
+d2.logz <- d2
+d2.logz$Z0 <- log(d2.logz$Z0)
 result.lmUst <- lm(Ut ~ Z0, data = d2.logz)
 summary(result.lmUst)
 
@@ -158,6 +294,7 @@ axis(side=1,          #side2:左
      mgp=c(1,1,0),
      cex.axis = 1.7
 )
+
 fPow <- function(x){(2:9)*10^x}
 axis(side=1,        #side2:左
      at=sapply(-4:-1, fPow), #繰り返し(2:9)×10^(iLogL:iLogU)
@@ -220,6 +357,277 @@ lines(x,eta.pred)
 plot(d2$clus.group,d2$meanSF,xlab = "",ylab = "saltation flux (g/s m^2)",
      ylim = c(min(d2$meanSF)*0.9, max(d2$meanSF)*1.1),
      cex.axis=1.7,cex.lab =2,log = "y")
+
+
+plot(meanSF~VegCover,data = d2 ,ylab = "saltation flux (g/s m^2)",xlab= "cover (%)",
+     cex.axis=1.7,cex.lab =2,pch = 16)
+
+
+# 黒崎先生ご指摘、fλ算出 ------------------------------------------------------------
+# d2
+# 1．community heightをhとして、z0/hを計算。
+temp.hm <- d2$VegComHgt / 100
+temp.z0h <- d2$Z0/temp.hm
+
+# 2. 私のスライド16にForoutan et al. (2017)を載せていますが、
+# z0/h=0.96λ^1.07の関係式から 
+# λ ：roughness density (Shao 2008のfrontal area index)を計算。
+# log(λ) = {log(z0h / 0.96)}/1.07
+temp.lambda2 <- {log(temp.z0h/0.96)}/1.07
+temp.lambda <- exp(temp.lambda2)
+
+# 3. Shao (2008) eq. (9.22)の式でf(λ)が得られます。
+# Shao (2008)の値が異なりますが、WRF-Chemでは、m=0.5, σ=1.0, β=200が使われる。
+# m=0.5, σ=1.0, β=200
+par.mr <- 0.5
+par.sigr <- 1.0
+par.betar <- 200
+temp.flambda <- cul.flambda(temp.lambda, par.mr, par.sigr, par.betar)
+
+cul.flambda <- function(lambda,mr, sigr, betar){
+  y <- sqrt(1 - mr * sigr * lambda) * 
+          sqrt(1 + mr * betar * lambda)
+}
+
+# 4. 私のスライド2に載せた臨界摩擦速度の式において、
+# 土壌水分、クラストなどの効果を無視(fw=fsc=fc=1)とすると 
+# ut = ut0×f(λ)になりますので、Shaoの教科書に書かれている理論では、
+# これで線形関係に持って行けます。
+
+plot(temp.flambda,d2$Ut,ylim = c(0,2))
+
+# ust~ fλ
+result.lmUstlam <- lm(d2$Ut ~ temp.flambda)
+summary(result.lmUstlam)
+d2$flambda <- temp.flambda
+
+# λ = -0.35 ln(1 - 0.01 * VC) (Shao, 2008)の式で推定するλ
+temp.pred.lambda <- -0.35 * log(1 - 0.01 * d2$VegCover )
+
+par(mar = c(5,6,3,2),family = family_serif)
+plot(temp.pred.lambda ~ temp.lambda, xlim = c(0,0.15),
+     ylim = c(0,0.25),
+     cex = 2,pch = 16, cex.lab = 2, cex.axis = 1.7,
+     ylab = expression(paste(lambda," predicted by Eq.")),
+     xlab = expression(paste(lambda," calcurated with ",z[0])),
+     col = topo.colors(8)[round(d2$AsioV5range,0)])
+legend(0.12,0.25,1:max(round(d2$AsioV5range,0)),
+      title = "range",col =topo.colors(8)[1:max(round(d2$AsioV5range,0))],pch=16)
+lines(c(0,0.15),c(0,0.15))
+
+# λ ~ VC
+plot(temp.flambda~d2$VegCover,xlim = c(0,50),ylim = c(0,4))
+temp.vegr <- d2$VegCover * d2$AsioV5range
+plot(temp.flambda~temp.vegr,ylim = c(0,4))
+
+plot(temp.flambda ~ d2$VegCover, xlim = c(0,50),
+     ylim = c(0,4),
+     cex = 2,pch = 16, cex.lab = 2, cex.axis = 1.7,
+     ylab = expression(f[lambda]),
+     xlab ="cover (%)",
+     col = topo.colors(8)[round(d2$AsioV5range,0)])
+legend(0,1,1:max(round(d2$AsioV5range,0)),
+       title = "range",col =topo.colors(8)[1:max(round(d2$AsioV5range,0))],pch=16)
+
+# 粗度要素と植生要素　再解析 -----------------------------------------------------------
+
+d5 <- read.csv("Veg_EroAnalysis15.csv", header =T)
+
+# 型変換
+d5$SiteID <- as.factor(d5$SiteID)
+d5$Event <- as.factor(d5$Event)
+d5$ID <- as.factor(d5$ID)
+
+### D to c
+# c = D* \rho / g
+# \rho = 1293g m^-3 = , g = 9.8 m s^-2
+d5$D <- d5$D * 1293 / 9.8
+
+# グループ
+d5$clus.group<- rep(NA,length = nrow(d5))
+
+d5$clus.group[!is.na(d5$Ut)] <- as.factor(clus.group)
+d5$clus.group  <- as.factor(d5$clus.group)
+
+# グループ間比較
+layout(matrix(c(1,2,3,4,5,6), nrow = 2, ncol = 3, byrow = TRUE))
+par(mar = c(5,7,3,1),xpd=F,family = family_serif)
+boxplot(AveHeight~clus.group, data = d5)
+boxplot(QuadHeight~clus.group, data = d5)
+boxplot(QuadRichness~clus.group, data = d5)
+boxplot(V5range~clus.group, data = d5)
+boxplot(rh~clus.group, data = d5.sel)
+boxplot(d5.sel$rh ~ d5$clus.group[!is.na(d5$clus.group )])
+
+d5$lambda = rep(NA,length = nrow(d5))
+d5$lambda[!is.na(d5$Ut)] <- temp.lambda
+d5$z0h = rep(NA,length = nrow(d5))
+d5$z0h[!is.na(d5$Ut)] <- temp.z0h
+d5$flambda = rep(NA,length = nrow(d5))
+d5$flambda[!is.na(d5$Ut)] <- temp.flambda
+
+d5.sel <- d5[!is.na(d5$Ut),c("ID","lambda","z0h","flambda","QuadCover",
+                             "QuadHeight","AveHeight","meanSF","D","V5range",
+                             "AsioV5range","QuadRichness","Ut","Z0")]
+# d5.sel <- d5.sel[1:9,]
+# pairs(d5.sel)
+d5.sel$rh <- d5.sel$AsioV5range*2/(d5.sel$QuadHeight/100)
+# d5.sel$rh <- d5.sel$rh / d5.sel$QuadCover
+# d5.sel$rh2 <- d5.sel$AsioV5range*100/d5.sel$QuadHeight
+
+# lmd5.lam  <- lm(lambda ~ rh + QuadCover,data = d5.sel)
+# summary(lmd5.lam)
+# plot(lambda~QuadHeight,data = d5.sel,pch = 16, xlim=c(0,16))
+# plot(rh~QuadCover, data = d5.sel)
+# plot(D~V5range, data = d5.sel,pch = 16)
+# plot(AveHeight~QuadCover ,data = d5.sel,ylim = c(0,16))
+
+lmd5.lam  <- lm(Ut ~  flambda,data = d5.sel)
+summary(lmd5.lam)
+# lmd5.lam  <- glm(D ~ QuadHeight + AsioV5range + flambda ,data = d5.sel,
+#                  family = Gamma(link  = log))
+# summary(lmd5.lam)
+# plot(D~QuadHeight,data = d5.sel)
+
+
+
+# lambda とcoverの関係、range/hを考慮して
+lmd5.lam  <- lmres(lambda ~ QuadCover *rh,
+                   centered = c("QuadCover","rh"),data = d5.sel)
+summary(lmd5.lam)
+
+model2 <- simpleSlope(lmd5.lam, pred="QuadCover", mod1 = "rh")
+summary(model2)
+PlotSlope(model2)
+
+plot(lambda ~ QuadCover, data = d5.sel,col = rainbow(9)[round(d5.sel$rh/20,0)],
+     cex = 2,pch = 16, cex.axis = 1.7,cex.lab = 2,
+     ylab = expression(lambda),
+     xlab = "cover (%)",xlim = c(0,45),ylim = c(0,0.15))
+legend(40,0.14,title  ="range /h",seq(min(round(d5.sel$rh,0))-3,
+                                 max(round(d5.sel$rh,0))-3,by = 20),
+       col = rainbow(9)[1:max(round(d5.sel$rh/10,0))],pch=16,
+       cex = 1.2)
+
+# C とcoverの関係、range/hを考慮して
+lmd5.lam  <- lmres(D ~ QuadCover *rh,
+                   centered = c("QuadCover","rh"),data = d5.sel)
+summary(lmd5.lam)
+
+model2 <- simpleSlope(lmd5.lam, pred="QuadCover", mod1 = "rh")
+summary(model2)
+PlotSlope(model2)
+
+par(mar = c(5,7,3,1),xpd=F,family = family_serif)
+plot(D ~ QuadCover, data = d5.sel,col = rainbow(9)[round(d5.sel$rh/20,0)],
+     cex = 2,pch = 16, cex.axis = 1.7,cex.lab = 2,
+     ylab = expression(paste("coefficient c (" , m^{-1},")")),
+     xlab = "cover (%)",xlim = c(0,45),ylim = c(0,14))
+legend(40,12,title  ="range /h",seq(min(round(d5.sel$rh,0))-3,
+                                      max(round(d5.sel$rh,0))-3,by = 20),
+       col = rainbow(9)[1:max(round(d5.sel$rh/20,0))],pch=16,
+       cex = 1.2)
+
+
+
+plot(z0h~QuadCover,data = d5.sel)
+plot(D~rh,data = d5.sel,log = "y")
+
+cor.lmd5 <- cor(d5.sel[,c("QuadCover","AveHeight","V5range")])
+vif.res <- 1/(1-cor.lmd5^2)
+vif.res #手計算
+vif(lmd5.lam) # パッケージ使用
+
+options(na.action = "na.fail")
+dredge(lmd5.lam,rank="AIC")
+
+lmd5.lam  <- lm(D ~ + AveHeight   ,data = d5.sel)
+summary(lmd5.lam)
+
+# 異方性でないrange
+d3 <- data.frame(lambda = temp.lambda, z0h =  temp.z0h,flambda = temp.flambda,
+                 cover = d2$VegCover, height = d2$VegComHgt, range = d2$AsioV5range,
+                 rangeh = 100*d2$V5range/d2$VegComHgt,ust = d2$Ut, coc = d2$D, sf = d2$meanSF)
+# d3 <- d3[2:9,]
+# d3$sf <- log(d3$sf)
+pairs(d3)
+lmd3.lam <- lm(coc ~  cover + height + range ,data = d3)
+summary(lmd3.lam)
+
+plot(z0h~height,data = d3,pch =16) 
+
+library(performance)
+r2(lmd3.lam)
+lmd3.lam.r2 <- as.numeric(r2(lmd3.lam))
+
+lmd3.lam.r2 <- summary(lmd3.lam)$adj.r.squared
+
+# 多重共線性
+cor.lmd3 <- cor(d3[,c("cover","height","range")])
+vif.res <- 1/(1-cor.lmd3^2)
+vif.res #手計算
+vif(lmd3.lam) # パッケージ使用
+
+# AIC
+options(na.action = "na.fail")
+dredge(lmd3.lam,rank="AIC")
+
+lmd3.lam2 <- glm(coc ~lambda,data = d3 ,family = Gamma(link = log))
+summary(lmd3.lam2)
+plot(coc~lambda,data=d3)
+plot(lambda~cover,data = d3)
+plot(height~cover , data = d3)
+
+pwr.f2.test(u=3,v=6,f2= lmd3.lam.r2 / (1-lmd3.lam.r2),sig.level = 0.05 ,power = NULL)
+
+
+
+# 異方性range
+d3 <- data.frame(lambda = temp.lambda, z0h =  temp.z0h,flambda = temp.flambda,
+                 cover = d2$VegCover, height = d2$VegComHgt, range = d2$AsioV5range,
+                 rangeh = 100*d2$AsioV5range/d2$VegComHgt,ust = d2$Ut, coc = d2$D, sf = d2$meanSF)
+pairs(d3)
+lmd3.lam <- lm(sf ~ cover + height  + range,data = d3 )
+summary(lmd3.lam)
+
+lmd3.lam2 <- lm(sf ~ cover + range ,data = d3 )
+summary(lmd3.lam2)
+
+
+# イベントごとの違い
+boxplot(aveWD ~ Event, data = d2)
+boxplot(aveWS ~ Event, data = d2)
+length(d2$Event == c(1,2,3,4,6))
+tapply(d2$SiteID,d2$Event,length)
+boxplot(meanSF ~ Event, data = d2)
+boxplot(D ~ Event, data = d2)
+plot(D~aveWS, data = d2)
+plot(meanSF~aveWS, data = d2)
+
+# 粗度要素と植生要素　再解析2 ----------------------------------------------------------
+# d4 <- read.csv("Veg_EroAnalysis14_2.csv", header =T)
+# 
+# # 型変換
+# d4$SiteID <- as.factor(d4$SiteID)
+# 
+# ### D to c
+# # c = D* \rho / g
+# # \rho = 1293g m^-3 = , g = 9.8 m s^-2
+# d4$c <- d4$c * 1293 / 9.8
+# 
+# # グループ付与
+# d4$clus.group <- as.factor(clus.group)
+# 
+# d4.2 <- data.frame(lambda = temp.lambda, z0h =  temp.z0h,flambda = temp.flambda,
+#                  cover = d4$SHP_Cover, height = d4$QuadCommunityHeight, range = d4$V500range,
+#                  rangeh = 100*d4$V500range/d4$QuadCommunityHeight)
+# pairs(d4.2)
+# lmd4.lam <- lm(lambda ~ cover + height  + rangeh,data = d4.2 )
+# summary(lmd4.lam)
+# 
+# lmd4.lam2 <- lm(lambda ~ cover + rangeh,data = d4.2 )
+# summary(lmd4.lam2)
+
 
 # soil condition ----------------------------------------------------------
 
@@ -397,8 +805,11 @@ p.result.BF
 # グループ間比較検定 ---------------------------------------------------------------
 library(NSM3)
 # 解析する要素
-ana.fact <- c("Ut","D","Z0","AsioV5range","VegCover","VegComHgt","clus.group")
+ana.fact <- c("Ut","D","Z0","AsioV5range","VegCover","VegComHgt","flambda","clus.group")
 d3 <- d2[,ana.fact]
+# d3 <- cbind(d3[,1:(ncol(d3)-1)],test.z,d3$clus.group)
+# ana.fact <- c("Ut","D","Z0","AsioV5range","VegCover","VegComHgt","x/h","clus.group")
+# colnames(d3) <-ana.fact
 d3 <- d3[order(d3$clus.group),]
 
 ### Steel-Dwass test
@@ -537,33 +948,48 @@ dev.off()
 
 # 回帰
 layout(matrix(c(1,2), nrow = 1, ncol = 2, byrow = TRUE))
+# パワポ用（縦並び）
+# layout(matrix(c(1,2), nrow = 2, ncol = 1, byrow = TRUE))
 par(mar = c(5,6,3,2),family = family_serif)
+
 # ust
-# par(mar = c(5,6,3,2),family = family_serif)
-plot(Ut ~ Z0, data = d2, xlim = c(10^(-4),max(d2$Z0)*1.1),
+
+# plot(Ut ~ Z0, data = d2, xlim = c(10^(-4),max(d2$Z0)*1.1),
+#      ylim = c(0, max(d2$Ut)*1.1),
+#      cex = 2,pch = 16, cex.lab = 2, cex.axis = 1.7,
+#      ylab = expression(paste(u["*"*t]," (m  ",s^{-1} ,")")),
+#      xlab = expression(paste(z[0] ," (m)")),
+#      log = "x",xaxt = "n")
+# sLab <- c(expression(10^{-4}),expression(10^{-3}),
+#           expression(10^{-2}),expression(10^{-1}))
+# axis(side=1,          #side2:左
+#      at=10^(-4:-1), #0から8まで1ずつ
+#      tck=0.03,            #長さ0.03のティック
+#      labels=sLab,
+#      mgp=c(1,1,0),
+#      cex.axis = 1.7
+# )
+# fPow <- function(x){(2:9)*10^x}
+# axis(side=1,        #side2:左
+#      at=sapply(-4:-1, fPow), #繰り返し(2:9)×10^(iLogL:iLogU)
+#      tck=0.01,          #長さ0.01のティック
+#      labels=FALSE,      #ラベル出力なし
+#      mgp=c(1,0.5,0)
+# )
+# x <- seq(min(d2$Z0),max(d2$Z0),by = 0.01)
+# eta.pred <- result.lmUst$coefficients[1] + result.lmUst$coefficients[2]*log(x)
+# lines(x,eta.pred)
+# title("(a)",adj = 0, cex.main = 2)
+
+# ust-fλ
+plot(d2$Ut ~ temp.flambda, xlim = c(0,4),
      ylim = c(0, max(d2$Ut)*1.1),
      cex = 2,pch = 16, cex.lab = 2, cex.axis = 1.7,
-     ylab = expression(paste("threshold friction velocity (m  ",s^{-1} ,")")),
-     xlab = expression(paste(z[0] ," (m)")),
-     log = "x",xaxt = "n")
-sLab <- c(expression(10^{-4}),expression(10^{-3}),
-          expression(10^{-2}),expression(10^{-1}))
-axis(side=1,          #side2:左
-     at=10^(-4:-1), #0から8まで1ずつ
-     tck=0.03,            #長さ0.03のティック
-     labels=sLab,
-     mgp=c(1,1,0),
-     cex.axis = 1.7
-)
-fPow <- function(x){(2:9)*10^x}
-axis(side=1,        #side2:左
-     at=sapply(-4:-1, fPow), #繰り返し(2:9)×10^(iLogL:iLogU)
-     tck=0.01,          #長さ0.01のティック
-     labels=FALSE,      #ラベル出力なし
-     mgp=c(1,0.5,0)
-)
-x <- seq(min(d2$Z0),max(d2$Z0),by = 0.01)
-eta.pred <- result.lmUst$coefficients[1] + result.lmUst$coefficients[2]*log(x)
+     ylab = expression(paste(u["*"*t]," (m  ",s^{-1} ,")")),
+     xlab = expression(italic(f)[lambda]))
+
+x <- seq(1,4,by = 0.01)
+eta.pred <- result.lmUstlam$coefficients[1] + result.lmUstlam$coefficients[2] * x
 lines(x,eta.pred)
 title("(a)",adj = 0, cex.main = 2)
 
@@ -573,7 +999,7 @@ title("(a)",adj = 0, cex.main = 2)
 # par(mar = c(5,6,3,2),family = family_serif)
 plot(D ~ VegComHgt, data = d2, xlim = c(0,16),cex = 2,pch = 16,
      cex.lab = 2, cex.axis = 1.7,
-     ylab = expression(paste("c (" , m^{-1},")")),
+     ylab = expression(paste("coefficient c (" , m^{-1},")")),
      xlab = "community height (cm)")
 x <- seq(2,16,by = 0.1)
 eta.pred <- result.lmD$coefficients[1] + result.lmD$coefficients[2]*x
@@ -584,77 +1010,99 @@ title("(b)",adj = 0, cex.main = 2)
 # dev.off()
 
 
-dev.copy(cairo_pdf, file=paste(path4,"/regression_Ust_cSA.pdf",sep=""), width = 20, height = 10)
+dev.copy(cairo_pdf, file=paste(path4,"/regression_Ust_cSA2.pdf",sep=""), width = 20, height = 10)
 dev.off()
+# パワポ用
+# dev.copy(cairo_pdf, file=paste(path4,"/regression_Ust_cSA2.pdf",sep=""), width = 6, height = 12)
+# dev.off() 
 
 
 # グループ間比較
 
 layout(matrix(c(1,2,3,4,5,6), nrow = 2, ncol = 3, byrow = TRUE))
+# パワポ用
+# layout(matrix(c(1,2,3,4,5,6), nrow = 3, ncol = 2, byrow = TRUE))
 par(mar = c(5,7,3,1),xpd=F,family = family_serif)
 
 plot(d2$clus.group,d2$Ut,xlab = "",
-     ylab = expression(paste("threshold friction velocity (m  ",s^{-1} ,")")),
+     ylab = expression(paste(u["*"*t]," (m  ",s^{-1} ,")")),
      ylim = c(0, max(d2$Ut)*1.1),
      cex.axis=2,cex.lab =2.5)
 title( main="(a)",adj = 0,cex.main = 2)
+points(1:3,p.result.meanSE$mean[p.result.meanSE$factor == "Ut"],pch = 3)
 
 # beeswarm(d2$Ut~d2$clus.group, data = NULL, pch = 16, col = rainbow(8), main = 'angle', add = TRUE)
 plot(d2$clus.group,d2$D,xlab = "",
-     ylab = expression(paste("c (" , m^{-1},")")),
-     ylim = c(0.05, max(d2$D)*1.1),
-     cex.axis=2,cex.lab =2.5,log = "y"
-     ,yaxt = "n")
-sLab <- c(expression(10^{-1}),expression(10^{0}),
-          expression(10^{1}),expression(10^{2}))
-
-axis(side=2,          #side2:左
-     at=10^(-1:2), #0から8まで1ずつ
-     tck=0.03,            #長さ0.03のティック
-     labels=sLab,
-     mgp=c(1,0.5,0),
-     cex.axis = 2
-)
-fPow <- function(x){(2:9)*10^x}
-axis(side=2,        #side2:左
-     at=sapply(-2:2, fPow), #繰り返し(2:9)×10^(iLogL:iLogU)
-     tck=0.01,          #長さ0.01のティック
-     labels=FALSE,      #ラベル出力なし
-     mgp=c(1,0.5,0)
-)
+     ylab = expression(paste("coefficient c (" , m^{-1},")")),
+     ylim = c(0, max(d2$D)*1.1),
+     cex.axis=2,cex.lab =2.5)
+points(1:3,p.result.meanSE$mean[p.result.meanSE$factor == "D"],pch = 3)
 title( main="(b)",adj = 0,cex.main = 2)
+### 係数cの対数表記バージョン
+# plot(d2$clus.group,d2$D,xlab = "",
+#      ylab = expression(paste("c (" , m^{-1},")")),
+#      ylim = c(0.05, max(d2$D)*1.1),
+#      cex.axis=2,cex.lab =2.5,log = "y"
+#      ,yaxt = "n")
+# sLab <- c(expression(10^{-1}),expression(10^{0}),
+#           expression(10^{1}),expression(10^{2}))
+# 
+# axis(side=2,          #side2:左
+#      at=10^(-1:2), #0から8まで1ずつ
+#      tck=0.03,            #長さ0.03のティック
+#      labels=sLab,
+#      mgp=c(1,0.5,0),
+#      cex.axis = 2
+# )
+# fPow <- function(x){(2:9)*10^x}
+# axis(side=2,        #side2:左
+#      at=sapply(-2:2, fPow), #繰り返し(2:9)×10^(iLogL:iLogU)
+#      tck=0.01,          #長さ0.01のティック
+#      labels=FALSE,      #ラベル出力なし
+#      mgp=c(1,0.5,0)
+# )
+# title( main="(b)",adj = 0,cex.main = 2)
 # beeswarm(d2$D~d2$clus.group, data = NULL, pch = 16, col = rainbow(8), main = 'angle', add = TRUE)
 
-plot(d2$clus.group,d2$Z0,log = "y",xlab = "",
-     ylab = expression(paste(z[0] ," (m)")),
-     ylim = c(10^(-4),0.15),
-     cex.axis=2,cex.lab =2.5
-     ,yaxt = "n")
-# beeswarm(d2$Z0~d2$clus.group, data = NULL, pch = 16, col = rainbow(8), main = 'angle', add = TRUE)
+### z0の描画
+# plot(d2$clus.group,d2$Z0,log = "y",xlab = "",
+#      ylab = expression(paste(z[0] ," (m)")),
+#      ylim = c(10^(-4),0.15),
+#      cex.axis=2,cex.lab =2.5
+#      ,yaxt = "n")
+# points(1:3,p.result.meanSE$mean[p.result.meanSE$factor == "Z0"],pch = 3)
+# 
+# sLab <- c(expression(10^{-4}),expression(10^{-3}),
+#           expression(10^{-2}),expression(10^{-1}))
+# 
+# axis(side=2,          #side2:左
+#      at=10^(-4:-1), #0から8まで1ずつ
+#      tck=0.03,            #長さ0.03のティック
+#      labels=sLab,
+#      mgp=c(1,0.5,0),
+#      cex.axis = 2
+# )
+# fPow <- function(x){(2:9)*10^x}
+# axis(side=2,        #side2:左
+#      at=sapply(-5:-1, fPow), #繰り返し(2:9)×10^(iLogL:iLogU)
+#      tck=0.01,          #長さ0.01のティック
+#      labels=FALSE,      #ラベル出力なし
+#      mgp=c(1,0.5,0)
+# )
+# title( main="(c)",adj = 0,cex.main = 2)
 
-
-sLab <- c(expression(10^{-4}),expression(10^{-3}),
-          expression(10^{-2}),expression(10^{-1}))
-
-axis(side=2,          #side2:左
-     at=10^(-4:-1), #0から8まで1ずつ
-     tck=0.03,            #長さ0.03のティック
-     labels=sLab,
-     mgp=c(1,0.5,0),
-     cex.axis = 2
-)
-fPow <- function(x){(2:9)*10^x}
-axis(side=2,        #side2:左
-     at=sapply(-5:-1, fPow), #繰り返し(2:9)×10^(iLogL:iLogU)
-     tck=0.01,          #長さ0.01のティック
-     labels=FALSE,      #ラベル出力なし
-     mgp=c(1,0.5,0)
-)
+# fλの描画
+plot(d2$clus.group,d2$flambda,xlab = "",
+     ylab = expression(italic(f)[lambda]),
+     ylim = c(0, 4),
+     cex.axis=2,cex.lab =2.5)
+points(1:3,p.result.meanSE$mean[p.result.meanSE$factor == "flambda"],pch = 3)
 title( main="(c)",adj = 0,cex.main = 2)
 
 plot(d2$clus.group,d2$AsioV5range,xlab = "",ylab = "range (m)",
      ylim = c(0,max(d2$AsioV5range)*1.2),
      cex.axis=2,cex.lab =2.5)
+points(1:3,p.result.meanSE$mean[p.result.meanSE$factor == "AsioV5range"],pch = 3)
 title( main="(d)",adj = 0,cex.main = 2)
 
 # 有意差表記
@@ -676,6 +1124,7 @@ text(2.5, 9.3, "†",cex = 1.7)
 plot(d2$clus.group,d2$VegCover,xlab = "group",ylab = "cover (%)",
      ylim = c(0,max(d2$VegCover)*1.2),
      cex.axis=2,cex.lab =2.5)
+points(1:3,p.result.meanSE$mean[p.result.meanSE$factor == "VegCover"],pch = 3)
 title( main="(e)",adj = 0,cex.main = 2)
 # 有意差表記
 # 1-2
@@ -699,8 +1148,11 @@ plot(d2$clus.group,d2$VegComHgt,xlab = "",ylab = "community height (cm)",
      ylim = c(0,max(d2$VegComHgt)*1.1),
      cex.axis=2,cex.lab =2.5, boxwex=0.8)
 title( main="(f)",adj = 0,cex.main = 2)
+points(1:3,p.result.meanSE$mean[p.result.meanSE$factor == "VegComHgt"],pch = 3)
 # beeswarm(d2$VegComHgt~d2$clus.group, data = NULL, pch = 16, col = rainbow(8), main = 'angle', add = TRUE)
 
-dev.copy(cairo_pdf, file=paste(path4,"/group_vegSA_sig.pdf",sep=""), width = 15, height = 10)
+dev.copy(cairo_pdf, file=paste(path4,"/group_vegSA_sig2.pdf",sep=""), width = 15, height = 10)
 dev.off()
-
+# パワポ用
+# dev.copy(cairo_pdf, file=paste(path4,"/group_vegSA_sig2.pdf",sep=""), width = 8, height = 12)
+# dev.off()

@@ -8,11 +8,15 @@ siteNO <- 8
 ### Nitrariaサイトを除いてSAのみに
 d <- d[1:siteNO,]
 
+group <- c(2,2,2,3,5,1,2,1)
+d <- cbind(d,group)
+
 
 ev <- read.csv("EventPeriod2.csv")
 d$Start <- as.POSIXct(d$Start)
 d$End <- as.POSIXct(d$End) 
 d <- d[order(d$SiteID,decreasing=T),]
+d <- d[order(d$group,decreasing=T),]
 ev$Start <-as.POSIXct(ev$Start)
 ev$End <-as.POSIXct(ev$End)
 ev$Ave <-as.POSIXct(ev$Ave)

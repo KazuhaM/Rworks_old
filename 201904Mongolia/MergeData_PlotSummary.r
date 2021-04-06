@@ -6,8 +6,8 @@ path <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モ�
 path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 setwd(path)
 
-averate <- c("60","180","300","600","1800")
-
+# averate <- c("60","180","300","600","1800")
+averate <- c("60")
 d.flist <- list.files(path, pattern="csv")
 # d.flist300 <- d.flist[grep(averate,d.flist)]
 
@@ -17,7 +17,7 @@ wm.col = 6
 n <- 3 + pc.col + wm.col*1.5 
 
 # 
-eventperiod <- read.csv(paste(path2,"EventPeriod.csv",sep="/"))
+eventperiod <- read.csv(paste(path2,"EventPeriod2.csv",sep="/"))
 eventperiod$Start <- as.POSIXct(eventperiod$Start)
 eventperiod$End <- as.POSIXct(eventperiod$End)
 
@@ -135,6 +135,6 @@ for(k in 1 : length(averate)){
     dev.off()
   }
   
-  write.csv(result.df, paste(sub("/avebyn","",path),"/", averate[k],"_sumdata.csv", sep = ""),row.names=FALSE)
+  # write.csv(result.df, paste(sub("/avebyn","",path),"/", averate[k],"_sumdata.csv", sep = ""),row.names=FALSE)
   
 }
