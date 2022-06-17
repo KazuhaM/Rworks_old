@@ -5,3 +5,4 @@ Resources
 /.Rdata
 *.zip
 *.RdataTmp
+.Rhistory

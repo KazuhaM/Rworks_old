@@ -20,7 +20,11 @@ for(j in 1:length(t.c)){
 }
 }
 legend(0,ymax,title = "ust",t.ust,col = 1,lty=1:length(t.c))
+<<<<<<< HEAD
 legend(0,ymax*0.8,title = expression(italic(c)),t.c,col = 1:length(t.c),lty=1,cex=1.3)
+=======
+legend(0,ymax*0.8,title = "c",t.c,col = 1:length(t.c),lty=1)
+>>>>>>> 8c71277e1e54acf95b8b5d8d448e5e0b4d112f8c
 
 
 
@@ -32,10 +36,17 @@ owen.plot <- function(c,ust,us,xM =1.2 ,yM = 1000,lcol=1,llty = 1){
   old.par <- par("mar")
   par(mar = c(5,7,3,1),family = family_serif)
   plot(sf~ us,type = "l",xlim = c(0,xM),ylim = c(0,yM),
+<<<<<<< HEAD
        xlab = expression(paste(italic(u)["*"],sep="")),
        ylab = expression(paste("saltation flux (g ",m^{-2},s^{-1},")",sep="")),
        cex.lab = 2,cex.axis = 1.7,col=lcol,lty = llty,lwd = 2)
   # segments(ust,0,ust,10,col=lcol)
+=======
+       xlab = expression(paste(u["*"],sep="")),
+       ylab = expression(paste("saltation flux (g ",m^{-2},s^{-1},")",sep="")),
+       cex.lab = 2,cex.axis = 1.7,col=lcol,lty = llty)
+  segments(ust,0,ust,10,col=lcol)
+>>>>>>> 8c71277e1e54acf95b8b5d8d448e5e0b4d112f8c
   par(mar = old.par)
   # return(sf)
 }

@@ -161,7 +161,10 @@ radarchart(rbind(Windrose[1:2,],rep(0,16)), axistype = 0, seg = 0,
            title = "Azimuth (degree)",cex.main = 1.5
 )
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8c71277e1e54acf95b8b5d8d448e5e0b4d112f8c
 plot(NULL, ann = F)
 legend(0,0.5,title = expression(paste(" Wind speed (m ",s^-1,")",sep="")),yjust=0.5 ,title.adj = 0,
        row.names(Windrose[1:5,]),col=1:6,cex=1.2,ncol=1,lwd = 2,lty = 1:6,text.width=0.3)
