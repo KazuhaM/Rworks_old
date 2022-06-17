@@ -6,7 +6,8 @@ library(tcltk2)
 # path2 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData"
 # path3 <- "E:/Clouds/OneDrive - g.chtecc.u-tokyo.ac.jp/LEP/2019/現行資料/1102春期モンゴル解析3/roughness"
 # path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
-path3 <- "D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2020\00working\1102MongoliaAnalysis7\Cul\recul_event"
+# path3 <- "D:\OneDrive - g.ecc.u-tokyo.ac.jp\LEP\2020\00working\1102MongoliaAnalysis7\Cul\recul_event"
+path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1301MongoliaAnalysis8/NsiteRecul/recul_event_N" #Nsite only
 setwd(path3)
 # averate <- c("60","180","300","600","1800")
 # averate <- c("60")
@@ -14,7 +15,8 @@ averate <- c("60","600")
 # 風速計の1サイトあたりの数（全サイトで等しい場合）
 nJ <- 3
 
-path4 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+# path4 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+path4 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1301MongoliaAnalysis8/NsiteRecul/" #Nsite only
 
 ############################臨界風速等算出###################
 

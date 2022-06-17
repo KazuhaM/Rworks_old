@@ -1,4 +1,5 @@
-setwd("E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2018/現行資料/1401生態学会用中国解析2")
+# setwd("E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2018/現行資料/1401生態学会用中国解析2")
+setwd("D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2018/現行資料/1401生態学会用中国解析2")
 
 ### ライブラリ読み込み　###
 library(vegan)

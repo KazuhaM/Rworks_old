@@ -1,3 +1,5 @@
+
+# Init --------------------------------------------------------------------
 library(tcltk2)
 options(scipen=5)
 # path <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/0802春季モンゴル解析2/OriginalData/avebyn"
@@ -8,7 +10,8 @@ options(scipen=5)
 
 # path3 <- "E:/Clouds/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2019/現行資料/1401春期モンゴル解析4"
 # path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/0402春期モンゴル解析5"
-path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+# path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1102MongoliaAnalysis7/Cul"
+path3 <- "D:/OneDrive - g.ecc.u-tokyo.ac.jp/LEP/2020/00working/1301MongoliaAnalysis8/NsiteRecul" #Nsite only
 
 setwd(path3)
 # averate <- c("60","180","300","600","1800")
@@ -32,8 +35,8 @@ sf.d$Event <- as.factor(sf.d$Event)
 eventlev <- levels(sf.d$Event)[levels(sf.d$Event)!="99"]
 
 # 結果用データフレーム用意
-result.df2 <- data.frame(matrix(rep(NA, 10), nrow=1))[numeric(0), ]
-colnames(result.df2) <- c("SiteID","Event","E", "Ut", "c","Z0","d0","R","AveDev","SdDev")
+result.df2 <- data.frame(matrix(rep(NA, 11), nrow=1))[numeric(0), ]
+colnames(result.df2) <- c("SiteID","Event","E", "Ut", "c","Z0","d0","R","AveDev","SdDev","n")
 result.df2$SiteID <- as.character(result.df2$SiteID)
 result.df2$Event <- as.character(result.df2$Event)
 result.df2$E <- as.numeric(result.df2$E)
@@ -41,19 +44,28 @@ result.df2$Ut <- as.numeric(result.df2$Ut)
 result.df2$c <- as.numeric(result.df2$c)
 result.df2$Z0 <- as.numeric(result.df2$Z0)
 result.df2$AveDev <- as.numeric(result.df2$AveDev)
+result.df2$n <- as.numeric(result.df2$n)
 
 par(mfrow=c(1,1))
 # 値cのサイトごとの初期値
 # cseq <- c(0.000000001,0.00000001,0.0000001,0.000001,0.00001,0.0001,0.001,0.01,0.1,1)
 cseq <- 10^(-20:20)
-# icsq <-c(2,3,3,6,6,6,6,6,3,4,3,3,3,0,3,2,3,2,2,3,4,4,3,2,3,3,4)+1
-icsq <- rep(17,30) +c(3,	4,	1,	3,	3,	3,	4,	4,	3,	1,	1,	0,	2,	2,	1,	0,	0,	0,	0,	2,	0,	3,	2,	5,	4,	0,	-1,	5,	2,	3
+# # icsq <-c(2,3,3,6,6,6,6,6,3,4,3,3,3,0,3,2,3,2,2,3,4,4,3,2,3,3,4)+1
+# icsq <- rep(17,30) +c(3,	4,	1,	3,	3,	3,	4,	4,	3,	1,	1,	0,	2,	2,	1,	0,	0,	0,	0,	2,	0,	3,	2,	5,	4,	0,	-1,	5,	2,	3
+# 
+# 
+# 
+# 
+# )
+
+## for N site only
+icsq <- rep(17,5) +c(0,0,0,0,0
 
 
 
 
+                      
 )
-
 
 i <- 1
 # サイト、イベントごとに解析
@@ -70,10 +82,10 @@ for(j in 1:length(sitelev)){
       counta <- 1
       pbj <- txtProgressBar(min = 1, 
                             max = length(seq(0.01,max(temp.d$Us[!is.na(temp.d$Us)]),by = 0.01))*
-                              length(seq(cseq[icsq[i]],100*cseq[icsq[i]],by = cseq[icsq[i]])), 
+                              length(seq(cseq[icsq[i]],10000*cseq[icsq[i]],by = cseq[icsq[i]])), 
                             style = 3)
       for(iut in seq(0.01,max(temp.d$Us[!is.na(temp.d$Us)]),by = 0.01)){
-        for (ic in seq(cseq[icsq[i]],100*cseq[icsq[i]],by = cseq[icsq[i]])) {
+        for (ic in seq(cseq[icsq[i]],10000*cseq[icsq[i]],by = cseq[icsq[i]])) {
           qmodel <- ic*(1-(iut/temp.d$Us[!is.na(temp.d$Us)])^2)*temp.d$Us[!is.na(temp.d$Us)]^3
           e = (temp.d$SF_sl[!is.na(temp.d$Us)] - qmodel)^2
           # e = (temp.d$SF_gs[!is.na(temp.d$Us)] - qmodel)^2
@@ -114,8 +126,9 @@ for(j in 1:length(sitelev)){
                        as.numeric(temp.d$d0[1]) ,
                        as.numeric(temp.d$R[1]) ,
                        as.numeric(mean(temp.d$dev_n[!is.na(temp.d$dev_n)])),
-                       as.numeric(sd(temp.d$dev_n[!is.na(temp.d$dev_n)])))
-      colnames(t.2) <- c("SiteID","Event","E", "Ut", "c","Z0","d0","R","AveDev","SdDev")
+                       as.numeric(sd(temp.d$dev_n[!is.na(temp.d$dev_n)])),
+                       as.numeric(nrow(temp.d)))
+      colnames(t.2) <- c("SiteID","Event","E", "Ut", "c","Z0","d0","R","AveDev","SdDev","n")
       result.df2 <- rbind(result.df2,t.2)
       i <- i +1
     }
